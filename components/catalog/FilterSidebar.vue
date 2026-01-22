@@ -33,20 +33,20 @@
           <!-- Инпуты -->
           <div class="flex items-center gap-3">
             <div class="relative w-full">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">от</span>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{{ $t('catalog.price_from') }}</span>
               <input
                   v-model.number="sliderValues[0]"
-                  @change="onInputChange"
+                  @input="onInputChange"
                   type="number"
                   class="w-full rounded-xl border border-gray-100 bg-gray-50 py-2.5 pl-8 pr-2 text-xs font-bold focus:border-brand-blue focus:bg-white outline-none transition"
               >
             </div>
             <div class="h-px w-4 bg-gray-300"></div>
             <div class="relative w-full">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">до</span>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{{ $t('catalog.price_to') }}</span>
               <input
                   v-model.number="sliderValues[1]"
-                  @change="onInputChange"
+                  @input="onInputChange"
                   type="number"
                   class="w-full rounded-xl border border-gray-100 bg-gray-50 py-2.5 pl-8 pr-2 text-xs font-bold focus:border-brand-blue focus:bg-white outline-none transition"
               >
@@ -98,8 +98,21 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 
+// --- Types ---
+interface FilterValue {
+  id: number | string;
+  value: string;
+  count: number;
+}
+
+interface Filter {
+  id: number | string;
+  name: string;
+  values: FilterValue[];
+}
+
 const props = defineProps({
-  filtersData: { type: Array, default: () => [] },
+  filtersData: { type: Array as PropType<Filter[]>, default: () => [] },
   pending: { type: Boolean, default: false }
 });
 
@@ -110,39 +123,62 @@ const { t } = useI18n();
 const minLimit = 0;
 const maxLimit = 50000000;
 
+// Локальное состояние слайдера (отдельно от URL)
 const sliderValues = ref<number[]>([
   Number(route.query.min_price) || minLimit,
   Number(route.query.max_price) || maxLimit
 ]);
 
+// Синхронизация при загрузке URL
 watch(() => route.query, (newQuery) => {
-  sliderValues.value = [
-    Number(newQuery.min_price) || minLimit,
-    Number(newQuery.max_price) || maxLimit
-  ];
+  const newMin = Number(newQuery.min_price) || minLimit;
+  const newMax = Number(newQuery.max_price) || maxLimit;
+  // Обновляем слайдер только если значения реально отличаются, чтобы не сбивать драг
+  if (newMin !== sliderValues.value[0] || newMax !== sliderValues.value[1]) {
+    sliderValues.value = [newMin, newMax];
+  }
 });
 
+// --- DEBOUNCE LOGIC ---
+let debounceTimer: any = null;
+
 const onSliderChange = (values: number[]) => {
-  updatePriceQuery(values[0], values[1]);
+  sliderValues.value = values; // UI обновляется мгновенно
+  triggerUpdate(); // Запрос с задержкой
 };
 
 const onInputChange = () => {
+  // Валидация диапазонов
   if (sliderValues.value[0] > sliderValues.value[1]) {
-    const temp = sliderValues.value[0];
-    sliderValues.value[0] = sliderValues.value[1];
-    sliderValues.value[1] = temp;
+    // Если мин > макс, пока ничего не делаем или можно поменять местами
+    // Оставим пользователю свободу ввода, валидация при отправке
   }
-  updatePriceQuery(sliderValues.value[0], sliderValues.value[1]);
+  triggerUpdate();
+};
+
+const triggerUpdate = () => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+
+  debounceTimer = setTimeout(() => {
+    updatePriceQuery(sliderValues.value[0], sliderValues.value[1]);
+  }, 500); // 500ms задержка
 };
 
 const updatePriceQuery = (min: number, max: number) => {
   const query = { ...route.query };
-  if (min > minLimit) query.min_price = String(min); else delete query.min_price;
-  if (max < maxLimit) query.max_price = String(max); else delete query.max_price;
-  query.page = '1';
+
+  // Нормализация перед отправкой
+  const finalMin = Math.min(min, max);
+  const finalMax = Math.max(min, max);
+
+  if (finalMin > minLimit) query.min_price = String(finalMin); else delete query.min_price;
+  if (finalMax < maxLimit) query.max_price = String(finalMax); else delete query.max_price;
+
+  query.page = '1'; // Сброс страницы
   router.push({ query });
 };
 
+// --- Checkbox Logic (Без Debounce, фильтры применяем сразу) ---
 const isFilterActive = (filterId: string | number) => {
   const queryKey = `f_${filterId}`;
   return !!route.query[queryKey];
@@ -179,6 +215,6 @@ const hasAnyFilter = computed(() => Object.keys(route.query).some(k => k.startsW
 
 const clearAll = () => {
   sliderValues.value = [minLimit, maxLimit];
-  router.push({ query: { sort: route.query.sort } });
+  router.push({ query: { sort: route.query.sort } }); // Сохраняем сортировку
 };
 </script>
