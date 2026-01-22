@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Mulish', sans-serif;
+  overflow-x: hidden;
+
+  /* --- ЗАПРЕТ ЗУМА И УЛУЧШЕНИЕ ОТКЛИКА --- */
+
+  /*
+     touch-action: manipulation;
+     Сообщает браузеру, что касания используются только для прокрутки и зума (но не двойного тапа).
+     Это отключает задержку в 300мс на мобильных устройствах и блокирует двойной тап для зума в Chrome/Android.
+  */
+  touch-action: manipulation;
+
+  /*
+     -webkit-text-size-adjust: 100%;
+     Запрещает автоматическое увеличение шрифта при повороте экрана на iOS
+  */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* --- Анимации переходов страниц --- */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+  filter: blur(4px);
+  transform: scale(0.98);
+}
+
+/* --- Анимации переходов лейаутов --- */
+.layout-enter-active,
+.layout-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-enter-from,
+.layout-leave-to {
+  opacity: 0;
+  filter: blur(4px);
+}

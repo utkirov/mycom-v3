@@ -1,0 +1,10 @@
+User-Agent: *
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /tracking
+Disallow: /login
+Disallow: /profile
+Disallow: /success
+
+# Sitemap: https://mycom.uz/sitemap.xml
