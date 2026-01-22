@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-profile-bg flex flex-col">
     <LayoutAppHeader />
 
-    <!-- Добавлен pb-20 для мобильных -->
     <main class="pt-20 pb-24 md:pt-[130px] md:pb-20 flex-grow">
       <div class="container mx-auto px-4 sm:px-6 md:px-8">
 
@@ -12,6 +11,7 @@
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
 
+          <!-- Sidebar -->
           <aside class="md:col-span-4 lg:col-span-3">
             <div class="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100 sticky top-24">
 
@@ -65,6 +65,7 @@
             </div>
           </aside>
 
+          <!-- Content Slot -->
           <div class="md:col-span-8 lg:col-span-9">
             <slot />
           </div>

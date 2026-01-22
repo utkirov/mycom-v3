@@ -5,8 +5,13 @@
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div class="rounded-[32px] bg-white p-8 shadow-sm border border-gray-100 lg:col-span-2">
 
-        <div v-if="authStore.isLoading && !authStore.user" class="py-20 text-center">
-          <Icon name="svg-spinners:ring-resize" size="40" class="text-brand-blue" />
+        <!-- SKELETON -->
+        <div v-if="authStore.isLoading && !authStore.user" class="animate-pulse space-y-6">
+          <div class="h-4 w-32 bg-gray-100 rounded"></div>
+          <div class="grid gap-6 sm:grid-cols-2">
+            <div class="h-14 bg-gray-100 rounded-2xl"></div>
+            <div class="h-14 bg-gray-100 rounded-2xl"></div>
+          </div>
         </div>
 
         <form v-else @submit.prevent="handleSave" class="space-y-8">
@@ -14,6 +19,7 @@
             <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{{ $t('profile.personal_info') }}</h3>
 
             <div class="grid gap-6 sm:grid-cols-2">
+              <!-- NAME -->
               <div>
                 <label class="mb-2 block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">{{ $t('profile.full_name') }}</label>
                 <div class="relative group">
@@ -29,6 +35,7 @@
                 </div>
               </div>
 
+              <!-- PHONE (Disabled) -->
               <div>
                 <label class="mb-2 block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">{{ $t('auth.enter_phone') }}</label>
                 <div class="relative">
@@ -63,6 +70,7 @@
         </form>
       </div>
 
+      <!-- Security Info -->
       <div class="rounded-[40px] bg-blue-50/30 p-10 border border-blue-100 h-fit">
         <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-brand-blue shadow-sm ring-8 ring-blue-50/50">
           <Icon name="ph:shield-check-fill" size="32" />
@@ -84,11 +92,12 @@ definePageMeta({ layout: 'profile', middleware: 'auth' });
 const authStore = useAuthStore();
 const { call } = useApi();
 const { showToast } = useToast();
-const { t } = useI18n(); // Переход на useI18n
+const { t } = useI18n();
 
 const formData = ref({ name: '', phone: '' });
 const isSubmitting = ref(false);
 
+// Синхронизация формы с данными пользователя при загрузке
 watchEffect(() => {
   if (authStore.user) {
     formData.value.name = authStore.user.name || '';
@@ -108,7 +117,10 @@ const handleSave = async () => {
       method: 'POST',
       body: { name: formData.value.name }
     });
+
+    // 🔥 Обновляем стор, чтобы имя сменилось везде
     await authStore.fetchUser();
+
     showToast(t('common.save_success'));
   } catch (e: any) {
     showToast(e.data?.message || t('common.error_generic'), 'error');
