@@ -5,12 +5,11 @@ export default defineNuxtConfig({
     devtools: { enabled: true },
 
     app: {
-        // Настройки мета-тегов для отключения зума
         head: {
             viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
             meta: [
-                {name: 'format-detection', content: 'telephone=no'},
-                {name: 'HandheldFriendly', content: 'true'}
+                { name: 'format-detection', content: 'telephone=no' },
+                { name: 'HandheldFriendly', content: 'true' }
             ]
         },
         pageTransition: { name: 'page', mode: 'out-in' },
@@ -26,7 +25,6 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n'
     ],
 
-    // --- НАСТРОЙКА ИЗОБРАЖЕНИЙ ---
     image: {
         domains: ['crm.mycom.uz', 'mycom.uz'],
         quality: 80,
@@ -34,14 +32,13 @@ export default defineNuxtConfig({
     },
 
     i18n: {
-        // --- SEO FIX: Добавлен Base URL для генерации абсолютных ссылок ---
         baseUrl: 'https://mycom.uz',
         locales: [
-            // --- SEO FIX: Добавлены ISO коды для hreflang ---
             { code: 'ru', iso: 'ru-UZ', name: 'Русский', file: 'ru.ts' },
             { code: 'uz', iso: 'uz-UZ', name: 'O\'zbekcha', file: 'uz.ts' },
             { code: 'en', iso: 'en-UZ', name: 'English', file: 'en.ts' }
         ],
+        // Включаем ленивую загрузку переводов (экономит трафик)
         lazy: true,
         langDir: 'locales/',
         defaultLocale: 'uz',
@@ -52,6 +49,7 @@ export default defineNuxtConfig({
             redirectOn: 'root',
         },
         vueI18n: './i18n.config.ts',
+        // Отключаем строгие проверки, чтобы HTML теги в переводах работали корректно
         compilation: {
             strictMessage: false,
             escapeHtml: false

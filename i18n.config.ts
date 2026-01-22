@@ -1,9 +1,7 @@
 // i18n.config.ts
 export default defineI18nConfig(() => ({
     legacy: false,
-    locale: 'ru',
-    // Разрешаем HTML в строках перевода
+    fallbackLocale: 'uz', // Меняем на дефолтный язык проекта
     strictMessage: false,
-    escapeHtml: false,
-    fallbackLocale: 'ru'
+    escapeHtml: false
 }))

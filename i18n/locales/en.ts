@@ -213,9 +213,8 @@ export default {
     status: {
         pending: 'Pending',
         processing: 'Processing',
-        shipping: 'Shipping',
         shipped: 'Shipped',
-        delivered: 'Delivered',
+        completed: 'Completed',
         cancelled: 'Cancelled',
         paid: 'Paid'
     },

@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia'
 
 export const useCartStore = defineStore('cart', () => {
-    // --- ВАЖНО: Инициализируем хуки НА ВЕРХНЕМ УРОВНЕ ---
     const authStore = useAuthStore()
     const { showToast } = useToast()
-    const { t } = useI18n()
+
+    // Безопасный доступ к i18n
+    const { $i18n } = useNuxtApp()
+    const t = $i18n.t
+
     const { call } = useApi()
 
     // Храним ID и количество в куках
@@ -40,9 +43,7 @@ export const useCartStore = defineStore('cart', () => {
 
         try {
             if (authStore.isLoggedIn) {
-                // 1. АВТОРИЗОВАННЫЕ: Грузим с сервера
                 const res: any = await call('/api/v1/site/profile/basket')
-
                 const serverItems = Array.isArray(res.data) ? res.data : []
 
                 cart.value = serverItems.map((item: any) => ({
@@ -62,7 +63,6 @@ export const useCartStore = defineStore('cart', () => {
                 cartItemsRecord.value = newCookieRecord
 
             } else {
-                // 2. ГОСТИ: Грузим по ID из кук
                 const ids = Object.keys(cartItemsRecord.value)
                 if (ids.length === 0) {
                     cart.value = []
@@ -97,12 +97,42 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
+    // --- NEW: Метод слияния корзины гостя с сервером ---
+    const mergeGuestCart = async (guestItems: any[]) => {
+        if (!guestItems.length) return
+
+        // Создаем массив промисов для параллельной отправки
+        // (Если бэкенд поддерживает bulk-add, лучше использовать его. Здесь делаем loop)
+        const promises = guestItems.map(item => {
+            const pId = String(item.id || item.product_id)
+            const qty = item.quantity || 1
+
+            // Сначала добавляем товар
+            return call('/api/v1/site/profile/basket/add', {
+                method: 'POST',
+                query: { product_id: pId }
+            }).then(() => {
+                // Если количество > 1, обновляем его
+                if (qty > 1) {
+                    return call('/api/v1/site/profile/basket/update-count', {
+                        method: 'POST',
+                        query: { product_id: pId, count: qty }
+                    })
+                }
+            }).catch(e => console.error(`Failed to merge item ${pId}`, e))
+        })
+
+        await Promise.all(promises)
+
+        // Очищаем куки гостя, так как теперь данные на сервере
+        cartItemsRecord.value = {}
+    }
+
     const addToCart = async (product: any, qtyToAdd: number = 1) => {
         if (!product) return
 
         const pId = String(product.id || product.product_id || '')
 
-        // 1. Оптимистичное обновление
         const currentRecord = { ...cartItemsRecord.value }
         const newQty = (currentRecord[pId] || 0) + qtyToAdd
         currentRecord[pId] = newQty
@@ -123,13 +153,19 @@ export const useCartStore = defineStore('cart', () => {
             })
         }
 
-        // 2. Сервер
         if (authStore.isLoggedIn) {
             try {
                 await call('/api/v1/site/profile/basket/add', {
                     method: 'POST',
                     query: { product_id: pId }
                 })
+                // Если добавили сразу много (со страницы товара), нужно обновить каунт
+                if (newQty > 1) {
+                    await call('/api/v1/site/profile/basket/update-count', {
+                        method: 'POST',
+                        query: { product_id: pId, count: newQty }
+                    })
+                }
             } catch (e) {
                 console.error('Не удалось добавить в корзину на сервере', e)
                 showToast(t('common.error_generic'), 'error')
@@ -140,14 +176,12 @@ export const useCartStore = defineStore('cart', () => {
     const removeFromCart = async (productId: string | number) => {
         const pId = String(productId)
 
-        // 1. Оптимистичное удаление
         const currentRecord = { ...cartItemsRecord.value }
         delete currentRecord[pId]
         cartItemsRecord.value = currentRecord
 
         cart.value = cart.value.filter(item => String(item.id || item.product_id) !== pId)
 
-        // 2. Сервер
         if (authStore.isLoggedIn) {
             try {
                 await call('/api/v1/site/profile/basket/delete', {
@@ -169,7 +203,6 @@ export const useCartStore = defineStore('cart', () => {
             return
         }
 
-        // 1. Оптимистичное обновление
         const currentRecord = { ...cartItemsRecord.value }
         currentRecord[pId] = quantity
         cartItemsRecord.value = currentRecord
@@ -177,7 +210,6 @@ export const useCartStore = defineStore('cart', () => {
         const item = cart.value.find(i => String(i.id || i.product_id) === pId)
         if (item) item.quantity = quantity
 
-        // 2. Сервер (НОВЫЙ ЭНДПОИНТ)
         if (authStore.isLoggedIn) {
             try {
                 await call('/api/v1/site/profile/basket/update-count', {
@@ -207,6 +239,7 @@ export const useCartStore = defineStore('cart', () => {
         addToCart,
         removeFromCart,
         updateQuantity,
-        clearCart
+        clearCart,
+        mergeGuestCart // <-- Экспортируем новый метод
     }
 })

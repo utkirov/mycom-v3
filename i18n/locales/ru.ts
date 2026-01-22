@@ -212,12 +212,11 @@ export default {
     },
     status: {
         pending: 'Ожидает',
-        processing: 'В обработке',
-        shipping: 'В пути',
+        processing: 'В обработке', // Будет показано и для 'paid'
         shipped: 'Отправлен',
-        delivered: 'Доставлен',
+        completed: 'Завершен',
         cancelled: 'Отменен',
-        paid: 'Оплачен'
+        paid: 'Оплачен' // Используется в бейдже
     },
     tracking: {
         description: 'Введите номер вашего заказа, чтобы узнать его текущий статус и детали доставки.',

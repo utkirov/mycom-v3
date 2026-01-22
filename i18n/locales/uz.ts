@@ -213,9 +213,8 @@ export default {
     status: {
         pending: 'Kutilmoqda',
         processing: 'Jarayonda',
-        shipping: 'Yo‘lda',
         shipped: 'Yuborildi',
-        delivered: 'Yetkazildi',
+        completed: 'Yakunlandi',
         cancelled: 'Bekor qilindi',
         paid: 'To‘landi'
     },
