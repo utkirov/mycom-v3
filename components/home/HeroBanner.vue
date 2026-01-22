@@ -1,7 +1,6 @@
 <template>
-  <!-- Уменьшил вертикальные отступы с py-6 до py-4 -->
   <section class="py-4 relative group">
-    <!-- 1. SKELETON (Загрузка) -->
+    <!-- 1. SKELETON -->
     <div v-if="pending" class="w-full px-4 sm:px-6 md:px-8">
       <SkeletonHero />
     </div>
@@ -17,7 +16,8 @@
     <!-- 3. SLIDER -->
     <div v-else-if="slides && slides.length" class="w-full px-4 sm:px-6 md:px-8">
 
-      <div class="relative overflow-hidden rounded-[32px] shadow-2xl shadow-brand-blue/10 transform transition-all duration-500 hover:shadow-brand-blue/20">
+      <!-- CLS FIX: Фиксируем aspect-ratio, чтобы не было скачка -->
+      <div class="relative overflow-hidden rounded-[32px] shadow-2xl shadow-brand-blue/10 transform transition-all duration-500 hover:shadow-brand-blue/20 aspect-[1.8/1] md:aspect-[2.5/1] lg:aspect-[3.2/1]">
 
         <Swiper
             :modules="modules"
@@ -31,16 +31,9 @@
               disableOnInteraction: false,
               pauseOnMouseEnter: true
             }"
-            class="hero-swiper aspect-[1.8/1] md:aspect-[2.5/1] lg:aspect-[3.2/1]"
+            class="hero-swiper h-full w-full"
             @autoplayTimeLeft="onAutoplayTimeLeft"
         >
-          <!--
-             ИЗМЕНЕНИЯ В ASPECT RATIO ВЫШЕ:
-             - Mobile: aspect-[1.8/1] (чуть шире чем 16:9)
-             - Tablet: aspect-[2.5/1]
-             - Desktop: aspect-[3.2/1] (сильно узкий, чтобы было видно контент снизу)
-          -->
-
           <SwiperSlide
               v-for="(slide, index) in slides"
               :key="slide.banner_id || index"
@@ -53,10 +46,13 @@
                   class="absolute inset-0 w-full h-full bg-cover bg-center"
                   data-swiper-parallax="50%"
               >
+                <!-- SEO FIX: fetchpriority и sizes для LCP -->
                 <NuxtImg
                     :src="slide.image"
                     :alt="slide.title || 'Banner'"
-                    :preload="index === 0"
+                    :loading="index === 0 ? 'eager' : 'lazy'"
+                    :fetchpriority="index === 0 ? 'high' : 'auto'"
+                    sizes="100vw sm:100vw md:100vw"
                     format="webp"
                     fit="cover"
                     class="w-full h-full object-cover transform transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-105"
@@ -79,7 +75,7 @@
                     <span>Special Offer</span>
                   </div>
 
-                  <!-- Заголовок (уменьшил размеры шрифта, чтобы влезал в узкий баннер) -->
+                  <!-- SEO: Используем h2 для заголовков баннера -->
                   <h2
                       v-if="slide.title"
                       class="text-2xl md:text-4xl lg:text-5xl font-black text-white font-unbounded leading-[1.1] mb-6 drop-shadow-lg opacity-0 animate-content line-clamp-2"
@@ -121,11 +117,11 @@
               ></circle>
             </svg>
             <div class="absolute inset-0 flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <button class="hero-prev text-white hover:text-brand-blue transition-colors p-1">
+              <button class="hero-prev text-white hover:text-brand-blue transition-colors p-1" aria-label="Previous slide">
                 <Icon name="ph:caret-left-bold" size="14" />
               </button>
               <span class="w-[1px] h-3 bg-white/30"></span>
-              <button class="hero-next text-white hover:text-brand-blue transition-colors p-1">
+              <button class="hero-next text-white hover:text-brand-blue transition-colors p-1" aria-label="Next slide">
                 <Icon name="ph:caret-right-bold" size="14" />
               </button>
             </div>

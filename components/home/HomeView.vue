@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import type { Product } from '~/types'; // Импорт типа
 
 const { baseURL, getHeaders } = useApi();
 const { t, locale } = useI18n();
@@ -36,34 +37,26 @@ const { data: apiResponse } = await useFetch<any>('/api/v1/site/collections-with
   transform: (response) => response.data || []
 });
 
+// Типизированные данные
 const collectionsData = computed(() => {
   const raw = apiResponse.value || [];
+
   return raw.map((col: any) => ({
     collection_id: col.collection_id,
     name: col.name,
     slug: col.slug,
-    products: (col.products || []).map((p: any) => {
-      // --- FIX: Логика обработки Stock ---
-      // 1. Проверяем stock, затем count
-      // 2. Если значение пришло (даже 0), используем его.
-      // 3. Если ничего нет, ставим 0 (нет в наличии) или другое дефолтное значение
-      let stockValue = 0;
-      if (p.stock !== undefined && p.stock !== null) stockValue = Number(p.stock);
-      else if (p.count !== undefined && p.count !== null) stockValue = Number(p.count);
-
-      return {
-        id: p.product_id,
-        name: p.name,
-        image: p.image,
-        price: Number(p.discount_price || p.price),
-        oldPrice: p.discount_price ? Number(p.price) : null,
-        rating: p.rating,
-        reviewsCount: p.reviews_count,
-        slug: p.seo?.name || null,
-        seo: p.seo,
-        stock: stockValue // <-- Теперь передаем чистое число
-      };
-    })
+    products: (col.products || []).map((p: any): Product => ({
+      id: p.product_id,
+      name: p.name,
+      image: p.image,
+      price: Number(p.discount_price || p.price),
+      oldPrice: p.discount_price ? Number(p.price) : null,
+      rating: p.rating,
+      reviews_count: p.reviews_count,
+      slug: p.seo?.name || null,
+      seo: p.seo,
+      stock: Number(p.stock ?? p.count ?? 0) // Безопасное преобразование
+    }))
   })).filter((col: any) => col.products.length > 0);
 });
 
