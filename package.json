@@ -26,6 +26,7 @@
     "vue-yandex-maps": "^1.1.0"
   },
   "devDependencies": {
+    "@iconify-json/ph": "^1.2.2",
     "@nuxt/image": "^1.11.0",
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/i18n": "^10.2.1",

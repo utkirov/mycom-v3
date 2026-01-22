@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-[#F8F9FB] min-h-screen py-8 md:py-12">
-    <!-- ЛОАДЕР (Блокируем интерфейс, пока проверяем актуальность цен) -->
+  <div class="bg-[#F8F9FB] min-h-screen py-8 md:py-12 pb-32 lg:pb-12">
+    <!-- ЛОАДЕР -->
     <div v-if="isCheckingStock" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
       <Icon name="svg-spinners:ring-resize" class="text-brand-blue mb-4" size="48" />
       <p class="text-brand-dark-blue font-bold animate-pulse">{{ $t('common.loading') }}...</p>
@@ -54,6 +54,7 @@
 
           <!-- Самовывоз -->
           <div v-if="checkoutStore.orderForm.delivery_method === 'pickup'" class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+            <!-- v-sanitize для безопасности HTML -->
             <p class="text-sm text-gray-600 mb-4" v-sanitize="$t('delivery.pickup_desc')"></p>
             <NuxtLink :to="localePath('/contacts')" class="text-brand-blue font-bold hover:underline flex items-center gap-1">
               <Icon name="ph:map-pin" />
@@ -65,8 +66,8 @@
           <CheckoutPaymentMethods v-model="checkoutStore.orderForm.payment_method" />
         </div>
 
-        <!-- Сайдбар -->
-        <div class="lg:col-span-1">
+        <!-- Сайдбар (Desktop) -->
+        <div class="hidden lg:block lg:col-span-1">
           <CartOrderSummary
               is-checkout-page
               :is-loading="checkoutStore.isSubmitting"
@@ -74,6 +75,28 @@
           />
         </div>
       </form>
+    </div>
+
+    <!-- Sticky Bottom Bar (Mobile) -->
+    <div class="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)] lg:hidden">
+      <div class="flex items-center justify-between gap-4 max-w-md mx-auto">
+        <div class="flex flex-col">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $t('cart.total') }}</span>
+          <div class="flex items-baseline gap-1">
+            <span class="text-xl font-black text-brand-blue">{{ format(cartStore.cartTotal) }}</span>
+            <span class="text-xs font-bold text-gray-500">сум</span>
+          </div>
+        </div>
+
+        <button
+            @click="checkoutStore.submitOrder"
+            :disabled="checkoutStore.isSubmitting"
+            class="flex-1 h-12 bg-brand-blue text-white rounded-xl font-bold shadow-lg shadow-brand-blue/30 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          <Icon v-if="checkoutStore.isSubmitting" name="svg-spinners:ring-resize" />
+          <span>{{ $t('cart.checkout') }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -84,27 +107,23 @@ import { ref, onMounted } from 'vue';
 const checkoutStore = useCheckoutStore();
 const cartStore = useCartStore();
 const { t } = useI18n();
+const { format } = useCurrency();
 const localePath = useLocalePath();
-const isCheckingStock = ref(true); // Локальное состояние загрузки
+const isCheckingStock = ref(true);
 
-definePageMeta({
-  middleware: 'auth'
-});
+definePageMeta({ middleware: 'auth' });
 
 onMounted(async () => {
-  // 1. Принудительно обновляем данные с сервера
   await cartStore.hydrateCart();
-
-  // 2. Если после обновления корзина пуста — выкидываем
   if (cartStore.cart.length === 0) {
     navigateTo(localePath('/cart'));
   }
-
-  // 3. Убираем лоадер
   isCheckingStock.value = false;
 });
 
-useSeoMeta({
-  title: () => `${t('checkout.title')} | MYCOM`
-});
+useSeoMeta({ title: () => `${t('checkout.title')} | MYCOM` });
 </script>
+
+<style scoped>
+.pb-safe { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+</style>
