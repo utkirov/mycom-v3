@@ -4,22 +4,29 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
 
-        <!-- Лого и Соцсети -->
+        <!-- 1. Лого и Соцсети -->
         <div class="lg:col-span-4">
-          <NuxtLink :to="localePath('/')" class="inline-block mb-6">
-            <img src="/logo.png" alt="MYCOM" class="h-10 w-auto">
+          <NuxtLink :to="localePath('/')" class="inline-block mb-6" aria-label="MYCOM Home">
+            <img src="/logo.png" alt="MYCOM" class="h-10 w-auto" width="120" height="40">
           </NuxtLink>
           <p class="text-gray-500 text-sm leading-relaxed max-w-sm mb-8">
             {{ $t('common.footer_about') }}
           </p>
           <div class="flex items-center gap-3">
-            <a v-for="social in siteStore.settings?.socials" :key="social.name" :href="social.url" target="_blank" class="footer-social-link">
+            <a
+                v-for="social in siteStore.settings?.socials"
+                :key="social.name"
+                :href="social.url"
+                target="_blank"
+                class="footer-social-link"
+                :aria-label="social.name"
+            >
               <Icon :name="getSocialIcon(social.name)" size="20" />
             </a>
           </div>
         </div>
 
-        <!-- Покупателям (Убрали лишнее) -->
+        <!-- 2. Покупателям -->
         <div class="lg:col-span-2">
           <h4 class="footer-title">{{ $t('common.for_customers') }}</h4>
           <nav class="flex flex-col gap-y-3">
@@ -27,11 +34,15 @@
               <Icon name="ph:truck" class="text-gray-300 group-hover:text-brand-blue transition-colors" />
               {{ $t('common.delivery') }}
             </NuxtLink>
-            <!-- Ссылки на Гарантию, Trade-In и Трекинг удалены по запросу -->
+            <!-- Доп. ссылки -->
+            <NuxtLink :to="localePath('/warranty')" class="footer-link group flex items-center gap-2">
+              <Icon name="ph:shield-check" class="text-gray-300 group-hover:text-brand-blue transition-colors" />
+              {{ $t('common.warranty') }}
+            </NuxtLink>
           </nav>
         </div>
 
-        <!-- Компания (Добавили иконки) -->
+        <!-- 3. Компания -->
         <div class="lg:col-span-2">
           <h4 class="footer-title">{{ $t('common.company') }}</h4>
           <nav class="flex flex-col gap-y-3">
@@ -50,34 +61,55 @@
           </nav>
         </div>
 
-        <!-- Подписка -->
+        <!-- 4. ВАРИАНТЫ ОПЛАТЫ (Вместо подписки) -->
         <div class="lg:col-span-4 bg-gray-50 rounded-[32px] p-8">
-          <h4 class="text-lg font-black text-brand-dark-blue mb-2">{{ $t('common.subscribe_title') }}</h4>
-          <p class="text-xs text-gray-500 mb-6 font-medium">{{ $t('common.subscribe_text') }}</p>
-          <form @submit.prevent="handleSubscribe" class="relative">
-            <input
-                type="email"
-                placeholder="E-mail"
-                class="w-full h-14 rounded-2xl border border-gray-200 bg-white px-6 pr-32 text-sm font-bold focus:border-brand-blue outline-none transition-all"
-            >
-            <button class="absolute right-1.5 top-1.5 h-11 px-6 rounded-xl bg-brand-blue text-xs font-black text-white uppercase tracking-widest hover:bg-brand-dark-blue transition-all">
-              OK
-            </button>
-          </form>
+          <h4 class="text-lg font-black text-brand-dark-blue mb-6">
+            {{ $t('delivery.payment_methods_title') }}
+          </h4>
+
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Payme -->
+            <div class="payment-card">
+              <img src="/icons/payme.svg" alt="Payme" class="h-6 w-auto object-contain">
+            </div>
+
+            <!-- Uzum -->
+            <div class="payment-card">
+              <img src="/icons/uzum.svg" alt="Uzum" class="h-6 w-auto object-contain">
+            </div>
+
+            <!-- Click / Uzcard / Humo (Комбинированный блок) -->
+            <div class="payment-card gap-2">
+              <img src="/icons/uzcard.png" alt="Uzcard" class="h-6 w-auto object-contain">
+              <span class="w-px h-4 bg-gray-200"></span>
+              <img src="/icons/humo.png" alt="Humo" class="h-6 w-auto object-contain">
+            </div>
+
+            <!-- Наличные -->
+            <div class="payment-card">
+              <div class="flex items-center gap-2 text-brand-dark-blue">
+                <Icon name="ph:money-wavy" size="24" class="text-green-500"/>
+                <span class="text-xs font-bold uppercase">{{ $t('checkout.cash') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-gray-400 mt-6 leading-relaxed font-medium">
+            {{ $t('delivery.payment_methods_desc') }}
+          </p>
         </div>
 
       </div>
 
+      <!-- Нижняя полоса (Только копирайт, так как иконки теперь в основном блоке) -->
       <div class="pt-8 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6">
-        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center md:text-left">
           © {{ new Date().getFullYear() }} MYCOM.uz. {{ $t('common.all_rights_reserved') }}
         </p>
 
-        <div class="flex items-center gap-4 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-          <img src="/icons/payme.svg" alt="Payme" class="h-4">
-          <img src="/icons/uzum.svg" alt="Uzum" class="h-4">
-          <img src="/icons/uzcard.png" alt="Uzcard" class="h-4">
-          <img src="/icons/humo.png" alt="Humo" class="h-4">
+        <!-- Можно оставить пустой блок или добавить ссылки на политику -->
+        <div class="hidden md:block text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+          Developed by ❤ INSAFF TEAM
         </div>
       </div>
 
@@ -89,20 +121,25 @@
 const siteStore = useSiteStore();
 const { t } = useI18n();
 const localePath = useLocalePath();
-const { showToast } = useToast();
 
 const getSocialIcon = (name) => {
   const map = { 'Telegram': 'ph:paper-plane-tilt-fill', 'Instagram': 'ph:instagram-logo-fill', 'Facebook': 'ph:facebook-logo-fill' };
   return map[name] || 'ph:link-bold';
 };
-
-const handleSubscribe = () => {
-  showToast(t('common.subscribe_success'), 'success');
-};
 </script>
 
 <style scoped>
-.footer-title { @apply text-xs font-black uppercase tracking-[0.2em] text-brand-dark-blue mb-6; }
-.footer-link { @apply text-sm font-bold text-gray-400 hover:text-brand-blue transition-colors; }
-.footer-social-link { @apply flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-400 transition-all hover:bg-brand-blue hover:text-white hover:shadow-lg hover:shadow-brand-blue/20; }
+.footer-title {
+  @apply text-xs font-black uppercase tracking-[0.2em] text-brand-dark-blue mb-6;
+}
+.footer-link {
+  @apply text-sm font-bold text-gray-500 hover:text-brand-blue transition-colors;
+}
+.footer-social-link {
+  @apply flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-400 transition-all hover:bg-brand-blue hover:text-white hover:shadow-lg hover:shadow-brand-blue/20;
+}
+/* Стили для карточек оплаты */
+.payment-card {
+  @apply flex h-14 items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md;
+}
 </style>

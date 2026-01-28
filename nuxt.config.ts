@@ -5,8 +5,9 @@ export default defineNuxtConfig({
     devtools: { enabled: true },
 
     app: {
+        // FIX: Убрали user-scalable=no для доступности
         head: {
-            viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+            viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
             meta: [
                 { name: 'format-detection', content: 'telephone=no' },
                 { name: 'HandheldFriendly', content: 'true' }
@@ -38,7 +39,6 @@ export default defineNuxtConfig({
             { code: 'uz', iso: 'uz-UZ', name: 'O\'zbekcha', file: 'uz.ts' },
             { code: 'en', iso: 'en-UZ', name: 'English', file: 'en.ts' }
         ],
-        // Включаем ленивую загрузку переводов (экономит трафик)
         lazy: true,
         langDir: 'locales/',
         defaultLocale: 'uz',
@@ -49,7 +49,6 @@ export default defineNuxtConfig({
             redirectOn: 'root',
         },
         vueI18n: './i18n.config.ts',
-        // Отключаем строгие проверки, чтобы HTML теги в переводах работали корректно
         compilation: {
             strictMessage: false,
             escapeHtml: false
@@ -69,6 +68,7 @@ export default defineNuxtConfig({
     runtimeConfig: {
         public: {
             apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://api.mycom.uz',
+            paymeMerchantId: process.env.NUXT_PUBLIC_PAYME_MERCHANT_ID || '67f3d85fed17d6583aa3ac92'
         }
     },
 
@@ -83,5 +83,5 @@ export default defineNuxtConfig({
 
     build: {
         transpile: ['swiper']
-    }
+    },
 })

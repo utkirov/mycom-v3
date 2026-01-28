@@ -5,7 +5,9 @@
     <NuxtLink
         :to="localePath('/product/' + getProductLink(product))"
         class="relative mb-4 block aspect-square w-full overflow-hidden rounded-3xl bg-gray-50 p-4"
+        :aria-label="product.name"
     >
+      <!-- FIX: Добавлены явные размеры width/height для CLS -->
       <NuxtImg
           :src="getImageUrl(product)"
           :alt="product.name"
@@ -32,7 +34,8 @@
           <Icon name="ph:star-fill" size="14" />
           <span class="text-xs font-black text-brand-dark-blue">{{ product.rating || '5.0' }}</span>
         </div>
-        <div class="flex items-center gap-1 text-gray-400">
+        <!-- FIX: Контрастность текста (gray-400 -> gray-500) -->
+        <div class="flex items-center gap-1 text-gray-500">
           <Icon name="ph:chat-circle-text-fill" size="14" />
           <span class="text-[11px] font-bold uppercase tracking-wider">
             {{ $t('product.reviews', { n: product.reviewsCount || product.feedbacks || 0 }) }}
@@ -49,7 +52,7 @@
       <div class="mt-auto space-y-4 pt-2">
 
         <div class="flex flex-col">
-          <span v-if="product.oldPrice" class="text-[11px] font-bold text-gray-400 line-through decoration-brand-red/30">
+          <span v-if="product.oldPrice" class="text-[11px] font-bold text-gray-500 line-through decoration-brand-red/30">
             {{ formatPrice(product.oldPrice) }} сум
           </span>
           <div class="flex items-baseline gap-1 text-brand-blue font-black">
@@ -61,31 +64,33 @@
         <div class="flex items-center gap-2">
           <div class="flex-1">
 
-            <!-- СЦЕНАРИЙ 1: СТОК 0 (ОЖИДАЕМ) -->
+            <!-- СТОК 0 -->
             <button
                 v-if="(product.stock || 0) === 0"
                 disabled
-                class="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-400 cursor-not-allowed border border-gray-200"
+                class="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-not-allowed border border-gray-200"
             >
               <Icon name="ph:clock-fill" size="18" />
               <span>{{ $t('product.expected') }}</span>
             </button>
 
-            <!-- СЦЕНАРИЙ 2: ЕСТЬ В НАЛИЧИИ, НЕ В КОРЗИНЕ -->
+            <!-- В КОРЗИНУ -->
             <button
                 v-else-if="localQty === 0"
                 @click.stop.prevent="onAddToCart($event)"
                 class="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-brand-blue text-[11px] font-black uppercase tracking-widest text-white shadow-md shadow-brand-blue/20 transition-all hover:bg-brand-dark-blue active:scale-95"
+                :aria-label="$t('product.add_to_cart')"
             >
               <Icon name="ph:shopping-cart-simple-bold" size="18" />
               <span>{{ $t('product.add_to_cart') }}</span>
             </button>
 
-            <!-- СЦЕНАРИЙ 3: В КОРЗИНЕ (СЧЕТЧИК) -->
+            <!-- СЧЕТЧИК -->
             <div v-else class="flex h-11 w-full items-center justify-between rounded-2xl bg-gray-100 px-2 ring-1 ring-brand-blue/20">
               <button
                   @click.stop.prevent="onDecrease"
                   class="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-brand-blue shadow-sm transition-all active:scale-90 hover:bg-brand-blue hover:text-white"
+                  :aria-label="$t('cart.delete')"
               >
                 <Icon name="ph:minus-bold" size="16" />
               </button>
@@ -99,17 +104,19 @@
                   class="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-brand-blue shadow-sm transition-all active:scale-90"
                   :disabled="localQty >= (product.stock || 999)"
                   :class="localQty >= (product.stock || 999) ? 'opacity-20 cursor-not-allowed' : 'hover:bg-brand-blue hover:text-white'"
+                  :aria-label="$t('common.add')"
               >
                 <Icon name="ph:plus-bold" size="16" />
               </button>
             </div>
           </div>
 
-          <!-- Кнопка "Избранное" -->
+          <!-- ИЗБРАННОЕ -->
           <button
               @click.stop.prevent="onToggleWishlist"
               class="flex h-11 w-11 items-center justify-center rounded-2xl border-2 transition-all duration-300 active:scale-90"
               :class="isFavorite ? 'bg-brand-red border-brand-red text-white shadow-lg shadow-brand-red/30' : 'border-gray-100 text-gray-400 hover:border-brand-blue hover:text-brand-blue'"
+              :aria-label="$t('profile.wishlist')"
           >
             <Icon
                 :name="isFavorite ? 'ph:heart-fill' : 'ph:heart-bold'"
@@ -137,7 +144,6 @@ const { t } = useI18n();
 const localePath = useLocalePath();
 const { startAnimation } = useCartAnimation();
 
-// --- ХЕЛПЕРЫ ---
 const formatPrice = (price: number) => String(price || 0).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
 const getImageUrl = (p: any) => p.image || (p.images && p.images[0] ? (p.images[0].url || p.images[0]) : '/images/pc-placeholder.png');
