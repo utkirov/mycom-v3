@@ -7,14 +7,18 @@
 
     <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
       <div v-for="item in cartStore.cart" :key="item.id" class="flex gap-4 py-3 border-b border-gray-50 last:border-0">
-        <NuxtLink :to="localePath(`/product/${item.slug || item.id}`)" class="h-16 w-16 shrink-0 bg-gray-50 rounded-xl p-1 border border-gray-100">
+
+        <!-- UPDATE: Ссылка на картинке -->
+        <NuxtLink :to="localePath(`/product/${item.slug}`)" class="h-16 w-16 shrink-0 bg-gray-50 rounded-xl p-1 border border-gray-100 block transition-transform hover:scale-105">
           <img :src="item.image" :alt="item.name" class="h-full w-full object-contain mix-blend-multiply">
         </NuxtLink>
 
         <div class="flex-grow min-w-0">
-          <NuxtLink :to="localePath(`/product/${item.slug || item.id}`)" class="text-sm font-bold text-brand-dark-blue line-clamp-1 hover:text-brand-blue transition-colors">
+          <!-- UPDATE: Ссылка на названии -->
+          <NuxtLink :to="localePath(`/product/${item.slug}`)" class="text-sm font-bold text-brand-dark-blue line-clamp-1 hover:text-brand-blue transition-colors">
             {{ item.name }}
           </NuxtLink>
+
           <div class="flex items-center justify-between mt-1">
             <span class="text-xs text-gray-500 font-medium">
               {{ item.quantity }} {{ $t('checkout.pcs') }} × {{ format(item.price) }}

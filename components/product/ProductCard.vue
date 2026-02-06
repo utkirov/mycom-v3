@@ -149,9 +149,13 @@ const formatPrice = (price: number) => String(price || 0).replace(/\B(?=(\d{3})+
 const getImageUrl = (p: any) => p.image || (p.images && p.images[0] ? (p.images[0].url || p.images[0]) : '/images/pc-placeholder.png');
 
 const getProductLink = (p: any) => {
+  // Если мы уже подготовили slug на этапе маппинга (в сторе или page), используем его
+  if (p.slug) return p.slug;
+
+  // Fallback (на всякий случай, если slug не пришел)
   const id = p.id || p.product_id;
-  if (p.seo?.name) return `${p.seo.name}_${id}`;
-  if (p.slug && typeof p.slug === 'string' && p.slug.includes('_')) return p.slug;
+  if (p.seo?.name) return `${p.seo.name}-${id}`;
+
   return id;
 };
 

@@ -24,7 +24,7 @@
         <div class="flex gap-4 items-start">
           <component
               :is="review.slug ? 'NuxtLink' : 'div'"
-              :to="review.slug ? localePath(`/catalog/${review.slug}`) : undefined"
+              :to="review.slug ? localePath(`/product/${review.slug}`) : undefined"
               class="shrink-0 h-16 w-16 rounded-xl bg-gray-50 border border-gray-100 p-2 overflow-hidden block"
           >
             <img
@@ -110,7 +110,9 @@ const { data: apiResponse, pending, error } = await useFetch<any>(`${config.publ
         id: item.feedback_id,
         productName: item.product_name,
         image: item.product_image,
-        slug: item.product_slug,
+        slug: item.product_slug
+            ? `${item.product_slug}-${item.product_id}`
+            : String(item.product_id),
         comment: item.feedback,
         rating: Math.round((item.rate || 0) / 2),
         date: item.date

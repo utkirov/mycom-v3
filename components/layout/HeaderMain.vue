@@ -247,7 +247,11 @@ watch(searchQuery, (newVal) => {
           name: p.name,
           price: p.discount_price || p.price,
           image: p.image,
-          slug: (p.seo?.name || p.slug) ? `${p.seo?.name || p.slug}_${p.product_id}` : p.product_id
+          // --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
+          // Используем p.slug (если API поиска его возвращает) или p.seo.name
+          slug: (p.slug || p.seo?.name)
+              ? `${p.slug || p.seo?.name}-${p.product_id}`
+              : String(p.product_id)
         }));
         totalResults.value = data.data.total || 0;
       } else {

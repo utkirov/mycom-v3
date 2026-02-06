@@ -10,7 +10,7 @@
         <div class="flex items-center gap-3">
           <NuxtLink
               v-if="collectionSlug"
-              :to="localePath(`/catalog/${collectionSlug}`)"
+              :to="localePath(`/catalog/${collectionSlug}-${collectionId}`)"
               class="text-xs font-bold text-brand-blue hover:underline sm:text-sm"
           >
             {{ $t('common.view_all') }}
@@ -73,7 +73,8 @@ import 'swiper/css';
 defineProps({
   title: { type: String, required: true },
   products: { type: Array, default: () => [] },
-  collectionSlug: { type: String, default: '' }
+  collectionSlug: { type: String, default: '' },
+  collectionId: { type: Number, default: '' }
 });
 
 const localePath = useLocalePath();

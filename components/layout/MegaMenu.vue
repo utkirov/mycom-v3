@@ -3,7 +3,6 @@
     <div @click="uiStore.isMegaMenuOpen = false" class="fixed inset-0 -z-10 bg-brand-dark-blue/10 backdrop-blur-sm transition-opacity"></div>
 
     <div class="container mx-auto flex min-h-[500px] max-h-[80vh]">
-      <!-- Используем isLoading из стора -->
       <div v-if="catalogStore.isLoading" class="w-full flex items-center justify-center py-20">
         <Icon name="svg-spinners:ring-resize" size="48" class="text-brand-blue" />
       </div>
@@ -54,7 +53,7 @@
               </h2>
 
               <NuxtLink
-                  :to="localePath(`/catalog/${activeCategory.slug || 'cat'}_${activeCategory.category_id}`)"
+                  :to="localePath(`/catalog/${activeCategory.slug || 'cat'}-${activeCategory.category_id}`)"
                   @click="uiStore.isMegaMenuOpen = false"
                   class="group flex items-center gap-2 text-sm font-bold text-brand-blue hover:text-brand-dark-blue transition-colors"
               >
@@ -67,7 +66,7 @@
               <NuxtLink
                   v-for="child in activeCategory.child_categories"
                   :key="child.category_id"
-                  :to="localePath(`/catalog/${activeCategory.slug || 'cat'}_${activeCategory.category_id}/${child.slug || 'sub'}_${child.category_id}`)"
+                  :to="localePath(`/catalog/${activeCategory.slug || 'cat'}-${activeCategory.category_id}/${child.slug || 'sub'}-${child.category_id}`)"
                   @click="uiStore.isMegaMenuOpen = false"
                   class="group flex flex-col items-center gap-3 p-4 rounded-2xl border border-gray-100 bg-gray-50/20 hover:bg-white hover:shadow-xl hover:border-brand-blue/10 transition-all duration-500"
               >
@@ -104,15 +103,11 @@
 import { computed, ref, watch } from 'vue';
 
 const uiStore = useUIStore();
-const catalogStore = useCatalogStore(); // <-- Используем стор
+const catalogStore = useCatalogStore();
 const router = useRouter();
 const { t } = useI18n();
 const localePath = useLocalePath();
 
-// УБРАЛИ ЛОКАЛЬНЫЙ useFetch
-// const { data: apiResponse ... } = await useFetch(...)
-
-// Берем данные из стора
 const categories = computed(() => catalogStore.tree);
 const activeCategory = ref<any>(null);
 
@@ -123,7 +118,8 @@ watch(categories, (newVal) => {
 }, { immediate: true });
 
 const goToCategory = (cat: any) => {
-  const path = localePath(`/catalog/${cat.slug || 'cat'}_${cat.category_id}`);
+  // ОБНОВЛЕНО: Используем дефис
+  const path = localePath(`/catalog/${cat.slug || 'cat'}-${cat.category_id}`);
   router.push(path);
   uiStore.isMegaMenuOpen = false;
 };

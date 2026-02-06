@@ -118,16 +118,18 @@
                 {{ $t('checkout.order_content') }}
               </h4>
               <div class="space-y-3">
-                <div v-for="(item, idx) in order.items" :key="idx" class="flex items-center justify-between gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                <!-- UPDATED: Ссылки на товары -->
+                <div v-for="(item, idx) in order.items" :key="idx" class="flex items-center justify-between gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100 transition-colors hover:border-brand-blue/30">
                   <div class="flex items-center gap-3 overflow-hidden">
-                    <div class="h-12 w-12 shrink-0 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden">
-                      <img v-if="item.image" :src="item.image" class="h-full w-full object-contain mix-blend-multiply">
+                    <NuxtLink :to="localePath(`/product/${item.slug}`)" class="h-12 w-12 shrink-0 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden group">
+                      <img v-if="item.image" :src="item.image" class="h-full w-full object-contain mix-blend-multiply transition-transform group-hover:scale-110">
                       <Icon v-else name="ph:image" size="20" class="text-gray-300" />
-                    </div>
+                    </NuxtLink>
 
                     <div>
-                      <!-- Поле product_name из API -->
-                      <p class="text-sm font-bold text-brand-dark-blue line-clamp-1">{{ item.product_name }}</p>
+                      <NuxtLink :to="localePath(`/product/${item.slug}`)" class="text-sm font-bold text-brand-dark-blue line-clamp-1 hover:text-brand-blue transition-colors">
+                        {{ item.product_name }}
+                      </NuxtLink>
                       <div class="flex items-center gap-2 text-[10px] font-bold text-gray-400 mt-0.5">
                         <span>{{ item.quantity }} {{ $t('checkout.pcs') }}</span>
                         <span class="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -147,7 +149,7 @@
         </div>
       </div>
 
-      <!-- Пагинация (NEW) -->
+      <!-- Пагинация -->
       <div v-if="totalPages > 1" class="mt-12 flex justify-center items-center gap-2">
         <button
             @click="handlePageChange(currentPage - 1)"
@@ -232,7 +234,12 @@ const orders = computed(() => {
     status: item.status,
     payment_method: item.payment_method,
     address: item.address,
-    items: item.items || []
+    // UPDATED: Маппим items с генерацией slug
+    items: (item.items || []).map((prod: any) => ({
+      ...prod,
+      // Формируем slug: название-товара-ID
+      slug: prod.slug ? `${prod.slug}-${prod.product_id}` : String(prod.product_id)
+    }))
   }));
 });
 
@@ -274,12 +281,12 @@ const getStatusColor = (status: string) => {
   }
 };
 
-// Улучшенная функция очистки адреса (удаляет пустые метки "кв:" в конце)
+// Функция очистки адреса
 const cleanAddress = (addr: string) => {
   if (!addr) return '—';
   return addr
-      .replace(/кв:\s*$/i, '') // Убирает висящий "кв: " в конце
-      .replace(/дом:\s*$/i, '') // Убирает висящий "дом: "
+      .replace(/кв:\s*$/i, '')
+      .replace(/дом:\s*$/i, '')
       .replace(/:\s*:/g, ':')
       .replace(/\s+/g, ' ')
       .trim();

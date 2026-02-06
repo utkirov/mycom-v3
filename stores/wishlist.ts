@@ -6,7 +6,6 @@ export const useWishlistStore = defineStore('wishlist', () => {
     const api = useApi()
     const authStore = useAuthStore()
     const { showToast } = useToast()
-    // Подключаем i18n для перевода уведомлений
     const { t } = useI18n()
 
     const wishlistData = ref<{ list: Product[], total: number, lastPage: number }>({
@@ -41,7 +40,20 @@ export const useWishlistStore = defineStore('wishlist', () => {
             const response = await api.call<ApiResponse<any>>('/api/v1/site/profile/favorites', {
                 query: { page }
             })
-            if (response.data) wishlistData.value = response.data
+
+            if (response.data) {
+                // --- ОБНОВЛЕННЫЙ MAPPING ---
+                const rawList = response.data.list || [];
+
+                response.data.list = rawList.map((p: any) => ({
+                    ...p,
+                    // Берем slug из JSON ("igrovoe-kreslo...") и добавляем ID ("-13")
+                    // Получится: "igrovoe-kreslo...-13"
+                    slug: p.slug ? `${p.slug}-${p.product_id}` : String(p.product_id)
+                }));
+
+                wishlistData.value = response.data
+            }
         } finally {
             isLoading.value = false
         }
@@ -55,11 +67,9 @@ export const useWishlistStore = defineStore('wishlist', () => {
             const index = cookieWishlist.value.indexOf(productId)
             if (index > -1) {
                 cookieWishlist.value.splice(index, 1)
-                // Используем ключ перевода для удаления
                 showToast(t('profile.wishlist_removed'))
             } else {
                 cookieWishlist.value.push(productId)
-                // Используем ключ перевода для добавления
                 showToast(t('profile.wishlist_added'))
             }
             return
@@ -76,7 +86,6 @@ export const useWishlistStore = defineStore('wishlist', () => {
                 query: { product_id: productId }
             })
             await fetchWishlist()
-            // Динамический перевод уведомления в зависимости от действия
             showToast(t(isCurrentlyIn ? 'profile.wishlist_removed' : 'profile.wishlist_added'))
         } finally {
             actionPendingId.value = null

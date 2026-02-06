@@ -56,8 +56,11 @@ const localePath = useLocalePath();
 
 const extractId = (slugStr: string) => {
   if (!slugStr) return '';
-  const parts = slugStr.split('_');
-  return parts.length > 1 ? parts.pop() : slugStr;
+
+  // Универсальный вариант: работает и с "name_123", и с "name-123"
+  // Берем все символы, являющиеся цифрами, в самом конце строки
+  const match = slugStr.match(/(\d+)$/);
+  return match ? match[1] : slugStr;
 };
 
 const productId = extractId(props.slug);
@@ -87,7 +90,7 @@ const { data: product, error } = await useFetch<Product>(`${config.public.apiBas
       reviews_count: Number(data.feedbacks || 0),
       specifications: data.attributes || [],
       seo: data.seo,
-      slug: data.seo?.name ? `${data.seo.name}_${data.product_id}` : String(data.product_id),
+      slug: data.seo?.name ? `${data.seo.name}-${data.product_id}` : String(data.product_id),
       brand: data.brand,
       isNew: data.is_new
     };

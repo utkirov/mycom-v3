@@ -17,6 +17,7 @@
         <div v-if="wishlistStore.wishlistItems.length > 0">
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <div v-for="product in wishlistStore.wishlistItems" :key="product.product_id">
+              <!-- UPDATED: Передаем slug из стора в компонент -->
               <ProductCard
                   :product="{
                   id: product.product_id,
@@ -24,7 +25,9 @@
                   image: product.image || '/images/pc-placeholder.png',
                   price: product.discount_price || product.price,
                   oldPrice: product.discount_price ? product.price : null,
-                  stock: 10
+                  stock: 10,
+                  slug: product.slug,
+                  seo: product.seo
                 }"
               />
             </div>
@@ -70,8 +73,8 @@
 const wishlistStore = useWishlistStore();
 const authStore = useAuthStore();
 const uiStore = useUIStore();
-const { t } = useI18n(); //
-const localePath = useLocalePath(); //
+const { t } = useI18n();
+const localePath = useLocalePath();
 
 const currentPage = ref(1);
 

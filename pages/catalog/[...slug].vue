@@ -21,12 +21,10 @@
 
       <!-- 2. Заголовок категории (H1) -->
       <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <!-- Приоритет: Данные из SEO API -> Данные из дерева меню -->
         <h1 class="text-3xl font-extrabold text-brand-dark-blue">
           {{ seoData?.name || currentCategoryName }}
         </h1>
 
-        <!-- Кол-во товаров (показываем только после загрузки) -->
         <p v-if="!pending" class="text-sm font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-lg">
           {{ $t('common.found') }}: {{ apiResponse?.total || 0 }}
         </p>
@@ -38,7 +36,6 @@
         <!-- КОНТЕНТ -->
         <div class="flex-1 w-full min-w-0">
 
-          <!-- Сортировка -->
           <div class="mb-8">
             <CatalogSortBar
                 v-model="currentSort"
@@ -46,13 +43,13 @@
             />
           </div>
 
-          <!-- A. ЗАГРУЗКА (Скелетон) -->
+          <!-- A. ЗАГРУЗКА -->
           <div v-if="pending" class="grid grid-cols gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
             <SkeletonProductCard v-for="n in 10" :key="n" />
           </div>
 
           <!-- B. ОШИБКА -->
-          <div v-else-if="error && !isFatal404" class="py-20 text-center">
+          <div v-else-if="error" class="py-20 text-center">
             <div class="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
               <Icon name="ph:warning-circle-bold" size="40" />
             </div>
@@ -80,7 +77,6 @@
                 <Icon name="ph:caret-left-bold" />
               </button>
 
-              <!-- Простая логика отображения страниц (можно улучшить для большого кол-ва) -->
               <template v-for="page in totalPages" :key="page">
                 <button
                     v-if="page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2)"
@@ -112,7 +108,7 @@
             <NuxtLink :to="localePath('/')" class="mt-8 inline-block px-8 py-3 bg-brand-blue text-white font-bold rounded-2xl">{{ $t('common.home') }}</NuxtLink>
           </div>
 
-          <!-- 3. SEO ТЕКСТ (Внизу страницы) -->
+          <!-- 3. SEO ТЕКСТ -->
           <div v-if="seoData?.text" class="mt-16 bg-gray-50 p-6 md:p-8 rounded-3xl border border-gray-100">
             <div class="prose max-w-none text-sm text-gray-600 leading-relaxed" v-sanitize="seoData.text"></div>
           </div>
@@ -162,10 +158,11 @@ const isFilterOpen = ref(false);
 const currentPage = ref(Number(route.query.page) || 1);
 const currentSort = ref(route.query.sort?.toString() || 'popularity');
 
-// --- HELPER: Извлечение ID из слага (category_123 -> 123) ---
+// --- HELPER: Извлечение ID из слага (category-123 -> 123) ---
 const extractId = (slugStr: string | undefined) => {
   if (!slugStr) return null;
-  const parts = slugStr.split('_');
+  // ОБНОВЛЕНО: Используем дефис как разделитель
+  const parts = slugStr.split('-');
   const id = parts.length > 1 ? parts.pop() : slugStr;
   return id && !isNaN(Number(id)) ? Number(id) : null;
 };
@@ -177,7 +174,7 @@ const targetCategoryId = computed(() => {
   return extractId(urlSlugs[urlSlugs.length - 1]);
 });
 
-// Формируем хлебные крошки и название из дерева меню (как резерв)
+// Формируем хлебные крошки и название из дерева меню
 const categoryInfo = computed(() => {
   if (!catalogStore.tree.length || !targetCategoryId.value) return { name: t('common.catalog'), crumbs: [] };
 
@@ -203,16 +200,17 @@ const categoryInfo = computed(() => {
   const crumbs = [{ name: t('common.home'), path: '/' }, { name: t('common.catalog'), path: '/catalog' }];
 
   if (parentCategory) {
+    // ОБНОВЛЕНО: Ссылка через дефис
     crumbs.push({
       name: parentCategory.name,
-      path: `/catalog/${parentCategory.slug || 'cat'}_${parentCategory.category_id}`
+      path: `/catalog/${parentCategory.slug || 'cat'}-${parentCategory.category_id}`
     });
   }
 
   if (foundCategory) {
     crumbs.push({
       name: foundCategory.name,
-      path: '' // Текущая страница без ссылки
+      path: ''
     });
   }
 
@@ -225,7 +223,7 @@ const categoryInfo = computed(() => {
 const breadcrumbs = computed(() => categoryInfo.value.crumbs);
 const currentCategoryName = computed(() => categoryInfo.value.name);
 
-// --- 1. ЗАГРУЗКА ТОВАРОВ (Основной запрос) ---
+// --- 1. ЗАГРУЗКА ТОВАРОВ ---
 const queryParams = computed(() => {
   const params: any = {
     lang: locale.value,
@@ -259,10 +257,10 @@ const { data: apiResponse, pending, error, refresh } = await useFetch<any>(`${co
     const data = res.data || {};
     if (data.list) {
       data.list = data.list.map((p: any) => {
+        // ОБНОВЛЕНО: Логика формирования слага через дефис
         const rawSlug = p.slug || p.seo?.name;
-        const hybridSlug = rawSlug ? `${rawSlug}_${p.product_id}` : p.product_id;
+        const hybridSlug = rawSlug ? `${rawSlug}-${p.product_id}` : String(p.product_id);
 
-        // Stock fix logic (дублируем логику из HomeView на всякий случай)
         let stockValue = 0;
         if (p.stock !== undefined && p.stock !== null) stockValue = Number(p.stock);
         else if (p.count !== undefined && p.count !== null) stockValue = Number(p.count);
@@ -274,23 +272,40 @@ const { data: apiResponse, pending, error, refresh } = await useFetch<any>(`${co
   }
 });
 
-// Обработка 404
-const isFatal404 = computed(() => error.value && error.value.statusCode === 404);
-if (isFatal404.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Category Not Found', fatal: true });
+// --- ОБРАБОТКА ОШИБОК И РЕДИРЕКТЫ ---
+if (error.value && error.value.statusCode === 404) {
+  // Попытка найти редирект для старого URL
+  try {
+    const redirectRes: any = await $fetch(`${config.public.apiBase}/api/v1/site/redirect`, {
+      params: { old_url: route.path }
+    });
+
+    if (redirectRes?.data?.url) {
+      let targetUrl = redirectRes.data.url;
+      // Если бэкенд отдает с подчеркиванием, меняем на дефис
+      targetUrl = targetUrl.replace(/_/g, '-');
+      // 301 Redirect
+      await navigateTo(targetUrl, { redirectCode: 301, external: false });
+    } else {
+      // Если редиректа нет, выкидываем честную 404
+      throw createError({ statusCode: 404, statusMessage: 'Category Not Found', fatal: true });
+    }
+  } catch (e) {
+    // Ошибка при проверке редиректа -> 404
+    throw createError({ statusCode: 404, statusMessage: 'Category Not Found', fatal: true });
+  }
 }
 
 const products = computed(() => apiResponse.value?.list || []);
 const totalPages = computed(() => apiResponse.value?.lastPage || 1);
 
-// --- 2. ЗАГРУЗКА SEO ДАННЫХ (Заголовок, текст) ---
+// --- 2. ЗАГРУЗКА SEO ДАННЫХ ---
 const { data: seoResponse } = await useFetch<any>(`${config.public.apiBase}/api/v1/site/seo/category`, {
   key: `category-seo-${targetCategoryId.value}-${locale.value}`,
   query: {
     category_id: targetCategoryId.value,
     lang: locale.value
   },
-  // Запрашиваем только если есть ID категории
   immediate: !!targetCategoryId.value,
   transform: (res: any) => res.data || null
 });
@@ -307,11 +322,10 @@ const handlePageChange = (page: number) => {
 watch(() => route.params.slug, () => { currentPage.value = 1; });
 watch(currentSort, () => { currentPage.value = 1; });
 
-// --- META TAGS & CANONICAL ---
+// --- META TAGS ---
 const baseUrl = 'https://mycom.uz';
 const canonicalUrl = computed(() => {
   const url = `${baseUrl}${route.path}`;
-  // Учитываем пагинацию для SEO
   return currentPage.value > 1 ? `${url}?page=${currentPage.value}` : url;
 });
 
@@ -320,17 +334,12 @@ useHead({
 });
 
 useSeoMeta({
-  // Заголовок: Из SEO API (если есть) или из дерева меню
   title: () => `${seoData.value?.name || currentCategoryName.value} | MYCOM`,
-
-  // Описание: Очищенный SEO текст (первые 160 символов) или шаблон
   description: () => {
     if (seoData.value?.text) {
-      // Убираем HTML теги для meta description
       const strippedText = seoData.value.text.replace(/<[^>]*>?/gm, '');
       return strippedText.slice(0, 160).trim() + '...';
     }
-    // Фолбек на шаблонный текст
     return `${t('common.buy')} ${seoData.value?.name || currentCategoryName.value} ${t('common.in_tashkent')}. ${t('seo.index_description')}`;
   }
 });

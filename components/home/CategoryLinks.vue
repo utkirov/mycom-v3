@@ -25,7 +25,7 @@
         >
           <SwiperSlide v-for="collection in collections" :key="collection.category_id">
             <NuxtLink
-                :to="localePath(`/catalog/${collection.slug || 'category'}_${collection.category_id}`)"
+                :to="localePath(`/catalog/${collection.slug || 'category'}-${collection.category_id}`)"
                 class="group flex h-28 flex-col items-center justify-center gap-3 rounded-2xl bg-[#F8F9FB] p-4 text-center transition-all hover:bg-white hover:shadow-md hover:ring-1 hover:ring-brand-blue/20"
             >
               <div class="h-12 w-12 transition-transform group-hover:scale-110">

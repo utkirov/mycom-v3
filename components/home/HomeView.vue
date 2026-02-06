@@ -17,6 +17,7 @@
           :title="col.name"
           :collection-slug="col.slug"
           :products="col.products"
+          :collection-id="col.collection_id"
       />
     </div>
   </div>
@@ -47,15 +48,20 @@ const collectionsData = computed(() => {
     slug: col.slug,
     products: (col.products || []).map((p: any): Product => ({
       id: p.product_id,
+      product_id: p.product_id, // Явно указываем для надежности
       name: p.name,
       image: p.image,
       price: Number(p.discount_price || p.price),
       oldPrice: p.discount_price ? Number(p.price) : null,
-      rating: p.rating,
-      reviews_count: p.reviews_count,
-      slug: p.seo?.name || null,
-      seo: p.seo,
-      stock: Number(p.stock ?? p.count ?? 0) // Безопасное преобразование
+      rating: p.rating || 0, // В этом JSON рейтинга нет, ставим 0 или дефолт
+      reviews_count: p.reviews_count || 0,
+
+      // --- ОБНОВЛЕННЫЙ MAPPING ---
+      // Берем slug из API и добавляем ID через дефис,
+      // чтобы ProductView смог извлечь ID (11, 10 и т.д.)
+      slug: p.slug ? `${p.slug}-${p.product_id}` : String(p.product_id),
+
+      stock: Number(p.stock ?? 0)
     }))
   })).filter((col: any) => col.products.length > 0);
 });

@@ -10,7 +10,7 @@
       </div>
 
       <div class="mx-auto max-w-xl">
-        <form @submit.prevent="handleTrack" class="flex items-center gap-3 rounded-[24px] bg-white p-2 shadow-xl shadow-brand-blue/5 border border-gray-100">
+        <form @submit.prevent="handleTrack()" class="flex items-center gap-3 rounded-[24px] bg-white p-2 shadow-xl shadow-brand-blue/5 border border-gray-100">
           <input
               v-model="orderIdInput"
               type="text"
@@ -52,7 +52,7 @@ import { ref, onMounted } from 'vue';
 
 const route = useRoute();
 const { call } = useApi();
-const { t, locale } = useI18n(); // Переход на useI18n
+const { t, locale } = useI18n();
 
 const orderIdInput = ref('');
 const searchedId = ref('');
@@ -70,11 +70,20 @@ const handleTrack = async (id?: string) => {
 
   try {
     const response: any = await call(`/api/v1/site/profile/orders/detail`, {
-      query: { order_id: targetId, lang: locale.value } // Используем системную локаль
+      query: { order_id: targetId, lang: locale.value }
     });
 
     if (response.data) {
-      orderData.value = response.data;
+      // --- UPDATE: MAPPING ---
+      const rawOrder = response.data;
+      if (rawOrder.items) {
+        rawOrder.items = rawOrder.items.map((item: any) => ({
+          ...item,
+          // Генерируем правильный слаг для ссылок
+          slug: item.slug ? `${item.slug}-${item.product_id}` : String(item.product_id)
+        }));
+      }
+      orderData.value = rawOrder;
     } else {
       orderData.value = null;
     }

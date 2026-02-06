@@ -84,7 +84,10 @@ const { data: apiResponse } = await useFetch('/api/v1/site/search', {
     if (data.list) {
       data.list = data.list.map((p: any) => ({
         ...p,
-        slug: p.seo?.name || null
+        // --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
+        slug: (p.slug || p.seo?.name)
+            ? `${p.slug || p.seo?.name}-${p.product_id}`
+            : String(p.product_id)
       }));
     }
     return data;

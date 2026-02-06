@@ -99,7 +99,7 @@
                 </button>
                 <h3 class="mb-6 text-2xl font-black text-brand-dark-blue">{{ activeCategory.name }}</h3>
 
-                <NuxtLink :to="localePath(`/catalog/${activeCategory.slug || 'cat'}_${activeCategory.category_id}`)" @click="uiStore.isMobileMenuOpen = false" class="mb-6 flex items-center justify-between rounded-xl bg-brand-blue p-4 font-bold text-white shadow-lg shadow-brand-blue/20 active:scale-[0.98] transition-all">
+                <NuxtLink :to="localePath(`/catalog/${activeCategory.slug || 'cat'}-${activeCategory.category_id}`)" @click="uiStore.isMobileMenuOpen = false" class="mb-6 flex items-center justify-between rounded-xl bg-brand-blue p-4 font-bold text-white shadow-lg shadow-brand-blue/20 active:scale-[0.98] transition-all">
                   <span>{{ $t('common.view_all') }}</span>
                   <Icon name="ph:arrow-right-bold" />
                 </NuxtLink>

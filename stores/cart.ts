@@ -54,7 +54,7 @@ export const useCartStore = defineStore('cart', () => {
                     discount_price: item.discount_price,
                     image: item.image,
                     quantity: item.count,
-                    slug: item.slug
+                    slug: item.slug ? `${item.slug}-${item.product_id}` : String(item.product_id)
                 }))
 
                 // Синхронизируем куки с сервером
@@ -87,7 +87,7 @@ export const useCartStore = defineStore('cart', () => {
                         oldPrice: p.discount_price ? p.price : null,
                         image: p.images?.[0]?.url || '/images/pc-placeholder.png',
                         quantity: cartItemsRecord.value[String(p.product_id)] || 1,
-                        slug: p.seo?.name
+                        slug: p.seo?.name ? `${p.seo.name}-${p.product_id}` : null
                     }))
             }
         } catch (e) {
