@@ -30,7 +30,7 @@
           class="aspect-square w-16 md:w-full rounded-2xl bg-white p-1 transition-all overflow-hidden relative border-2 shrink-0"
           :class="activeIndex === idx ? 'border-brand-blue shadow-md scale-105' : 'border-transparent hover:border-gray-200 opacity-70 hover:opacity-100'"
       >
-        <NuxtImg :src="img" width="100" height="100" format="webp" class="h-full w-full object-contain mix-blend-multiply" />
+        <NuxtImg :src="img" width="100" height="100" format="webp" class="h-full w-full object-contain" background="transparent" />
       </button>
     </div>
 
@@ -62,7 +62,7 @@
       >
         <SwiperSlide v-for="(img, idx) in product.images" :key="idx" class="flex items-center justify-center" @click="openLightbox">
           <div class="swiper-zoom-container w-full h-full p-6">
-            <NuxtImg :src="img" width="800" height="800" format="webp" fit="contain" class="max-h-full max-w-full object-contain mix-blend-multiply" />
+            <NuxtImg :src="img" width="800" height="800" format="webp" fit="contain" class="max-h-full max-w-full object-contain" background="transparent" />
           </div>
         </SwiperSlide>
       </Swiper>

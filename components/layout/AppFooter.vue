@@ -18,6 +18,7 @@
                 :key="social.name"
                 :href="social.url"
                 target="_blank"
+                rel="nofollow noopener noreferrer"
                 class="footer-social-link"
                 :aria-label="social.name"
             >
@@ -34,7 +35,6 @@
               <Icon name="ph:truck" class="text-gray-300 group-hover:text-brand-blue transition-colors" />
               {{ $t('common.delivery') }}
             </NuxtLink>
-            <!-- Доп. ссылки -->
             <NuxtLink :to="localePath('/warranty')" class="footer-link group flex items-center gap-2">
               <Icon name="ph:shield-check" class="text-gray-300 group-hover:text-brand-blue transition-colors" />
               {{ $t('common.warranty') }}
@@ -61,36 +61,23 @@
           </nav>
         </div>
 
-        <!-- 4. ВАРИАНТЫ ОПЛАТЫ (Вместо подписки) -->
+        <!-- 4. ВАРИАНТЫ ОПЛАТЫ -->
         <div class="lg:col-span-4 bg-gray-50 rounded-[32px] p-8">
           <h4 class="text-lg font-black text-brand-dark-blue mb-6">
             {{ $t('delivery.payment_methods_title') }}
           </h4>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Payme -->
             <div class="payment-card">
               <img src="/icons/payme.svg" alt="Payme" class="h-6 w-auto object-contain">
             </div>
 
-            <!-- Uzum -->
-            <div class="payment-card">
-              <img src="/icons/uzum.svg" alt="Uzum" class="h-6 w-auto object-contain">
-            </div>
-
-            <!-- Click / Uzcard / Humo (Комбинированный блок) -->
+            <!-- Click / Uzcard / Humo -->
             <div class="payment-card gap-2">
               <img src="/icons/uzcard.png" alt="Uzcard" class="h-6 w-auto object-contain">
               <span class="w-px h-4 bg-gray-200"></span>
               <img src="/icons/humo.png" alt="Humo" class="h-6 w-auto object-contain">
-            </div>
-
-            <!-- Наличные -->
-            <div class="payment-card">
-              <div class="flex items-center gap-2 text-brand-dark-blue">
-                <Icon name="ph:money-wavy" size="24" class="text-green-500"/>
-                <span class="text-xs font-bold uppercase">{{ $t('checkout.cash') }}</span>
-              </div>
             </div>
           </div>
 
@@ -101,13 +88,12 @@
 
       </div>
 
-      <!-- Нижняя полоса (Только копирайт, так как иконки теперь в основном блоке) -->
+      <!-- Нижняя полоса -->
       <div class="pt-8 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6">
         <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center md:text-left">
           © {{ new Date().getFullYear() }} MYCOM.uz. {{ $t('common.all_rights_reserved') }}
         </p>
 
-        <!-- Можно оставить пустой блок или добавить ссылки на политику -->
         <div class="hidden md:block text-[10px] font-bold text-gray-300 uppercase tracking-widest">
           Developed by ❤ INSAFF TEAM
         </div>
@@ -119,11 +105,14 @@
 
 <script setup>
 const siteStore = useSiteStore();
-const { t } = useI18n();
 const localePath = useLocalePath();
 
 const getSocialIcon = (name) => {
-  const map = { 'Telegram': 'ph:paper-plane-tilt-fill', 'Instagram': 'ph:instagram-logo-fill', 'Facebook': 'ph:facebook-logo-fill' };
+  const map = {
+    'Telegram': 'ph:paper-plane-tilt-fill',
+    'Instagram': 'ph:instagram-logo-fill',
+    'Facebook': 'ph:facebook-logo-fill'
+  };
   return map[name] || 'ph:link-bold';
 };
 </script>
@@ -138,8 +127,7 @@ const getSocialIcon = (name) => {
 .footer-social-link {
   @apply flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-400 transition-all hover:bg-brand-blue hover:text-white hover:shadow-lg hover:shadow-brand-blue/20;
 }
-/* Стили для карточек оплаты */
 .payment-card {
-  @apply flex h-14 items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md;
+  @apply flex h-14 items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md px-4;
 }
 </style>

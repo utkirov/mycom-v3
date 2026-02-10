@@ -71,6 +71,10 @@ export default defineNuxtConfig({
             paymeMerchantId: process.env.NUXT_PUBLIC_PAYME_MERCHANT_ID || '67f3d85fed17d6583aa3ac92'
         }
     },
+    routeRules: {
+        '/index.html': { redirect: { to: '/', statusCode: 301 } },
+        '/index.php': { redirect: { to: '/', statusCode: 301 } },
+    },
 
     css: ['~/assets/css/tailwind.css'],
 

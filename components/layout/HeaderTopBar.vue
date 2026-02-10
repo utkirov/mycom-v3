@@ -76,6 +76,7 @@
                 v-for="social in siteStore.settings.socials.slice(0, 2)"
                 :key="social.name"
                 :href="social.url"
+                rel="nofollow noopener noreferrer"
                 target="_blank"
                 class="text-gray-300 hover:text-brand-blue transition-colors"
             >

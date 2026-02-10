@@ -22,6 +22,7 @@
         <a
             :href="item.link"
             target="_blank"
+            rel="nofollow noopener noreferrer"
             class="h-14 w-14 rounded-2xl shadow-xl flex items-center justify-center text-white transition-transform hover:scale-110 active:scale-95"
             :class="item.bgColor"
         >

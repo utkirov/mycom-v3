@@ -26,7 +26,7 @@
         </h1>
 
         <p v-if="!pending" class="text-sm font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-lg">
-          {{ $t('common.found') }}: {{ apiResponse?.total || 0 }}
+          {{ $t('common.found') }}: {{ products.length }}
         </p>
       </div>
 
@@ -44,12 +44,12 @@
           </div>
 
           <!-- A. ЗАГРУЗКА -->
-          <div v-if="pending" class="grid grid-cols gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
+          <div v-if="pending" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
             <SkeletonProductCard v-for="n in 10" :key="n" />
           </div>
 
           <!-- B. ОШИБКА -->
-          <div v-else-if="error" class="py-20 text-center">
+          <div v-else-if="error && !isFatal404" class="py-20 text-center">
             <div class="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
               <Icon name="ph:warning-circle-bold" size="40" />
             </div>
@@ -108,15 +108,34 @@
             <NuxtLink :to="localePath('/')" class="mt-8 inline-block px-8 py-3 bg-brand-blue text-white font-bold rounded-2xl">{{ $t('common.home') }}</NuxtLink>
           </div>
 
-          <!-- 3. SEO ТЕКСТ -->
-          <div v-if="seoData?.text" class="mt-16 bg-gray-50 p-6 md:p-8 rounded-3xl border border-gray-100">
-            <div class="prose max-w-none text-sm text-gray-600 leading-relaxed" v-sanitize="seoData.text"></div>
+          <!-- 3. SEO ТЕКСТ (С КНОПКОЙ "ПОДРОБНЕЕ") -->
+          <div v-if="seoData?.text" class="mt-16 bg-gray-50 p-6 md:p-8 rounded-3xl border border-gray-100 relative">
+            <div
+                class="prose max-w-none text-sm text-gray-600 leading-relaxed overflow-hidden transition-all duration-500 ease-in-out"
+                :class="isSeoExpanded ? 'max-h-[5000px]' : 'max-h-32'"
+                v-sanitize="seoData.text"
+            ></div>
+
+            <!-- Градиентное затухание, когда текст скрыт -->
+            <div v-if="!isSeoExpanded" class="absolute bottom-16 left-0 right-0 h-20 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none rounded-b-3xl"></div>
+
+            <button
+                @click="isSeoExpanded = !isSeoExpanded"
+                class="mt-4 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-brand-blue hover:text-brand-dark-blue transition-colors group"
+            >
+              <span>{{ isSeoExpanded ? 'Свернуть' : 'Подробнее' }}</span>
+              <Icon
+                  :name="isSeoExpanded ? 'ph:caret-up-bold' : 'ph:caret-down-bold'"
+                  class="transition-transform duration-300"
+                  :class="isSeoExpanded ? '' : 'group-hover:translate-y-0.5'"
+              />
+            </button>
           </div>
 
         </div>
       </div>
 
-      <!-- 5. МОБИЛЬНЫЕ ФИЛЬТРЫ -->
+      <!-- МОБИЛЬНЫЕ ФИЛЬТРЫ -->
       <teleport to="body">
         <transition enter-active-class="transition-opacity duration-300" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-300" leave-from-class="opacity-100" leave-to-class="opacity-0">
           <div v-if="isFilterOpen" class="fixed inset-0 z-[100] flex">
@@ -129,7 +148,12 @@
                     <Icon name="ph:x-bold" size="20"/>
                   </button>
                 </div>
-                <CatalogFilterSidebar :filters-data="apiResponse?.filters || []" :pending="pending" />
+                <CatalogFilterSidebar
+                    :filters-data="apiResponse?.filters || []"
+                    :pending="pending"
+                    :min-price="apiResponse?.min_price"
+                    :max-price="apiResponse?.max_price"
+                />
                 <div class="sticky bottom-0 pt-4 mt-4 bg-white border-t border-gray-100">
                   <button @click="isFilterOpen = false" class="w-full py-3 bg-brand-blue text-white font-bold rounded-xl shadow-lg shadow-brand-blue/20">
                     {{ $t('common.save') }}
@@ -155,19 +179,18 @@ const localePath = useLocalePath();
 const catalogStore = useCatalogStore();
 
 const isFilterOpen = ref(false);
+const isSeoExpanded = ref(false); // Состояние для "Подробнее"
 const currentPage = ref(Number(route.query.page) || 1);
 const currentSort = ref(route.query.sort?.toString() || 'popularity');
 
-// --- HELPER: Извлечение ID из слага (category-123 -> 123) ---
+// --- Helpers ---
 const extractId = (slugStr: string | undefined) => {
   if (!slugStr) return null;
-  // ОБНОВЛЕНО: Используем дефис как разделитель
-  const parts = slugStr.split('-');
+  const parts = slugStr.split(/[-_]/);
   const id = parts.length > 1 ? parts.pop() : slugStr;
   return id && !isNaN(Number(id)) ? Number(id) : null;
 };
 
-// Определяем текущую категорию по URL
 const urlSlugs = (route.params.slug as string[]) || [];
 const targetCategoryId = computed(() => {
   if (!urlSlugs.length) return null;
@@ -198,38 +221,18 @@ const categoryInfo = computed(() => {
   }
 
   const crumbs = [{ name: t('common.home'), path: '/' }, { name: t('common.catalog'), path: '/catalog' }];
+  if (parentCategory) crumbs.push({ name: parentCategory.name, path: `/catalog/${parentCategory.slug || 'cat'}-${parentCategory.category_id}` });
+  if (foundCategory) crumbs.push({ name: foundCategory.name, path: '' });
 
-  if (parentCategory) {
-    // ОБНОВЛЕНО: Ссылка через дефис
-    crumbs.push({
-      name: parentCategory.name,
-      path: `/catalog/${parentCategory.slug || 'cat'}-${parentCategory.category_id}`
-    });
-  }
-
-  if (foundCategory) {
-    crumbs.push({
-      name: foundCategory.name,
-      path: ''
-    });
-  }
-
-  return {
-    name: foundCategory ? foundCategory.name : t('common.catalog'),
-    crumbs: crumbs
-  };
+  return { name: foundCategory ? foundCategory.name : t('common.catalog'), crumbs: crumbs };
 });
 
 const breadcrumbs = computed(() => categoryInfo.value.crumbs);
 const currentCategoryName = computed(() => categoryInfo.value.name);
 
-// --- 1. ЗАГРУЗКА ТОВАРОВ ---
+// --- Fetching ---
 const queryParams = computed(() => {
-  const params: any = {
-    lang: locale.value,
-    page: currentPage.value,
-    ...route.query
-  };
+  const params: any = { lang: locale.value, page: currentPage.value, ...route.query };
 
   if (targetCategoryId.value) {
     if (urlSlugs.length >= 2) {
@@ -253,18 +256,27 @@ const { data: apiResponse, pending, error, refresh } = await useFetch<any>(`${co
   key: `catalog-detail-${route.fullPath}-${locale.value}`,
   query: queryParams,
   watch: [locale, route, queryParams],
+
   transform: (res: any) => {
     const data = res.data || {};
+    const list = data.list || [];
+
+    const prices = list.map((p: any) => Number(p.discount_price || p.price)).filter((p: number) => p > 0);
+    if (prices.length > 0) {
+      data.min_price = Math.min(...prices);
+      data.max_price = Math.max(...prices);
+    } else {
+      data.min_price = 0;
+      data.max_price = 0;
+    }
+
     if (data.list) {
       data.list = data.list.map((p: any) => {
-        // ОБНОВЛЕНО: Логика формирования слага через дефис
         const rawSlug = p.slug || p.seo?.name;
-        const hybridSlug = rawSlug ? `${rawSlug}-${p.product_id}` : String(p.product_id);
-
+        const hybridSlug = rawSlug ? `${rawSlug}-${p.product_id}` : p.product_id;
         let stockValue = 0;
-        if (p.stock !== undefined && p.stock !== null) stockValue = Number(p.stock);
-        else if (p.count !== undefined && p.count !== null) stockValue = Number(p.count);
-
+        if (p.stock !== undefined) stockValue = Number(p.stock);
+        else if (p.count !== undefined) stockValue = Number(p.count);
         return { ...p, slug: hybridSlug, stock: stockValue };
       });
     }
@@ -272,47 +284,34 @@ const { data: apiResponse, pending, error, refresh } = await useFetch<any>(`${co
   }
 });
 
-// --- ОБРАБОТКА ОШИБОК И РЕДИРЕКТЫ ---
-if (error.value && error.value.statusCode === 404) {
-  // Попытка найти редирект для старого URL
-  try {
-    const redirectRes: any = await $fetch(`${config.public.apiBase}/api/v1/site/redirect`, {
-      params: { old_url: route.path }
-    });
+const isFatal404 = computed(() => error.value && error.value.statusCode === 404);
+if (isFatal404.value) throw createError({ statusCode: 404, statusMessage: 'Category Not Found', fatal: true });
 
-    if (redirectRes?.data?.url) {
-      let targetUrl = redirectRes.data.url;
-      // Если бэкенд отдает с подчеркиванием, меняем на дефис
-      targetUrl = targetUrl.replace(/_/g, '-');
-      // 301 Redirect
-      await navigateTo(targetUrl, { redirectCode: 301, external: false });
-    } else {
-      // Если редиректа нет, выкидываем честную 404
-      throw createError({ statusCode: 404, statusMessage: 'Category Not Found', fatal: true });
-    }
-  } catch (e) {
-    // Ошибка при проверке редиректа -> 404
-    throw createError({ statusCode: 404, statusMessage: 'Category Not Found', fatal: true });
-  }
-}
+const products = computed(() => {
+  let list = apiResponse.value?.list || [];
+  const filterMin = route.query.min_price ? Number(route.query.min_price) : 0;
+  const filterMax = route.query.max_price ? Number(route.query.max_price) : Infinity;
 
-const products = computed(() => apiResponse.value?.list || []);
+  if (!filterMin && filterMax === Infinity) return list;
+
+  return list.filter((p: any) => {
+    const price = Number(p.discount_price || p.price);
+    return price >= filterMin && price <= filterMax;
+  });
+});
+
 const totalPages = computed(() => apiResponse.value?.lastPage || 1);
 
-// --- 2. ЗАГРУЗКА SEO ДАННЫХ ---
+// --- SEO Data ---
 const { data: seoResponse } = await useFetch<any>(`${config.public.apiBase}/api/v1/site/seo/category`, {
   key: `category-seo-${targetCategoryId.value}-${locale.value}`,
-  query: {
-    category_id: targetCategoryId.value,
-    lang: locale.value
-  },
+  query: { category_id: targetCategoryId.value, lang: locale.value },
   immediate: !!targetCategoryId.value,
   transform: (res: any) => res.data || null
 });
-
 const seoData = computed(() => seoResponse.value);
 
-// --- ЛОГИКА ---
+// --- Logic ---
 const handlePageChange = (page: number) => {
   if (page < 1 || page > totalPages.value) return;
   currentPage.value = page;
@@ -322,25 +321,27 @@ const handlePageChange = (page: number) => {
 watch(() => route.params.slug, () => { currentPage.value = 1; });
 watch(currentSort, () => { currentPage.value = 1; });
 
-// --- META TAGS ---
 const baseUrl = 'https://mycom.uz';
-const canonicalUrl = computed(() => {
-  const url = `${baseUrl}${route.path}`;
-  return currentPage.value > 1 ? `${url}?page=${currentPage.value}` : url;
-});
+const canonicalUrl = computed(() => `${baseUrl}${route.path}`);
 
-useHead({
-  link: [{ rel: 'canonical', href: canonicalUrl }]
-});
+useHead({ link: [{ rel: 'canonical', href: canonicalUrl }] });
 
 useSeoMeta({
-  title: () => `${seoData.value?.name || currentCategoryName.value} | MYCOM`,
+  // 1. ПРИОРИТЕТ: Поле title из API
+  // 2. ФОЛБЕК: name из API + формула
+  // 3. ФОЛБЕК: название категории из меню + формула
+  title: () => {
+    if (seoData.value?.title) return `${seoData.value.title} | MYCOM`;
+
+    const categoryName = seoData.value?.name || currentCategoryName.value;
+    return `${categoryName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz | MYCOM`;
+  },
+
   description: () => {
-    if (seoData.value?.text) {
-      const strippedText = seoData.value.text.replace(/<[^>]*>?/gm, '');
-      return strippedText.slice(0, 160).trim() + '...';
-    }
+    if (seoData.value?.description) return seoData.value.description;
+    if (seoData.value?.text) return seoData.value.text.replace(/<[^>]*>?/gm, '').slice(0, 160).trim() + '...';
     return `${t('common.buy')} ${seoData.value?.name || currentCategoryName.value} ${t('common.in_tashkent')}. ${t('seo.index_description')}`;
-  }
+  },
+  keywords: () => seoData.value?.keyword || ''
 });
 </script>

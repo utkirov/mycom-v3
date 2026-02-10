@@ -30,6 +30,9 @@ export interface Product {
         keywords?: string;
         description?: string;
     };
+    product_code?: string;
+    packing_code?: string;
+    isNew?: boolean;
 }
 
 export interface ApiResponse<T> {

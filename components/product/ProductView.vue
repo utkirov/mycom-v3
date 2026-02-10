@@ -1,23 +1,23 @@
 <template>
   <div>
-    <!-- Breadcrumbs -->
+    <!-- 1. Breadcrumbs -->
     <div class="container mx-auto px-4 py-4 sm:px-6 md:px-8">
-      <div class="text-xs text-gray-400 md:text-sm flex items-center flex-wrap gap-1 uppercase font-bold tracking-wider">
+      <nav class="text-xs text-gray-400 md:text-sm flex items-center flex-wrap gap-1 uppercase font-bold tracking-wider">
         <NuxtLink :to="localePath('/')" class="hover:text-brand-blue transition-colors">{{ $t('common.home') }}</NuxtLink>
-        <Icon name="ph:caret-right-bold" size="12" />
+        <Icon name="ph:caret-right-bold" size="10" />
         <NuxtLink :to="localePath('/catalog')" class="hover:text-brand-blue transition-colors">{{ $t('common.catalog') }}</NuxtLink>
-        <Icon name="ph:caret-right-bold" size="12" />
+        <Icon name="ph:caret-right-bold" size="10" />
         <span class="text-gray-600 truncate max-w-[200px] sm:max-w-md">
           {{ product.name }}
         </span>
-      </div>
+      </nav>
     </div>
 
-    <!-- Main Content -->
+    <!-- 2. Main Content -->
     <div class="container mx-auto px-4 sm:px-6 md:px-8">
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10 items-start">
 
-        <!-- Left Column -->
+        <!-- Левая колонка: Галерея и Табы (Описание, Характеристики, Отзывы) -->
         <div class="lg:col-span-7 xl:col-span-8 space-y-8">
           <ProductGallery :product="product" />
 
@@ -29,7 +29,7 @@
           />
         </div>
 
-        <!-- Right Column (Sticky) -->
+        <!-- Правая колонка: Основная информация, цены и кнопки (Sticky) -->
         <div class="lg:col-span-5 xl:col-span-4 sticky top-24">
           <ProductInfo :product="product" />
         </div>
@@ -37,14 +37,14 @@
       </div>
     </div>
 
-    <!-- Mobile Sticky Action Bar -->
+    <!-- Мобильная плашка с кнопкой купить (фиксированная снизу) -->
     <ProductMobileStickyBar :product="product" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Product, ApiResponse } from '~/types';
+import type { Product } from '~/types';
 
 const props = defineProps({
   slug: { type: String, required: true }
@@ -54,17 +54,17 @@ const config = useRuntimeConfig();
 const { locale, t } = useI18n();
 const localePath = useLocalePath();
 
+// --- ПАРСИНГ ID ---
+// Извлекает ID из слага (поддерживает и дефис и подчеркивание для совместимости)
 const extractId = (slugStr: string) => {
   if (!slugStr) return '';
-
-  // Универсальный вариант: работает и с "name_123", и с "name-123"
-  // Берем все символы, являющиеся цифрами, в самом конце строки
-  const match = slugStr.match(/(\d+)$/);
-  return match ? match[1] : slugStr;
+  const parts = slugStr.split(/[-_]/);
+  return parts.length > 1 ? parts.pop() : slugStr;
 };
 
 const productId = extractId(props.slug);
 
+// --- ЗАГРУЗКА ДАННЫХ ---
 const { data: product, error } = await useFetch<Product>(`${config.public.apiBase}/api/v1/site/products/detail`, {
   query: {
     product_id: productId,
@@ -85,72 +85,62 @@ const { data: product, error } = await useFetch<Product>(`${config.public.apiBas
       discount_price: data.discount_price ? Number(data.discount_price) : undefined,
       images: data.images?.map((img: any) => img.url) || [],
       image: data.images?.[0]?.url || '',
-      stock: Number(data.stock ?? data.count ?? 0),
+      stock: Number(data.stock ?? 0),
       rating: Number(data.rate || 0),
       reviews_count: Number(data.feedbacks || 0),
       specifications: data.attributes || [],
       seo: data.seo,
+      // Формируем внутренний слаг через дефис
       slug: data.seo?.name ? `${data.seo.name}-${data.product_id}` : String(data.product_id),
       brand: data.brand,
-      isNew: data.is_new
+      isNew: data.is_new,
+      product_code: data.product_code, // Артикул
+      packing_code: data.packing_code  // Внутренний код
     };
   }
 });
 
+// Обработка 404
 if (error.value || !product.value) {
   throw createError({ statusCode: 404, statusMessage: 'Product Not Found', fatal: true });
 }
 
-// --- SEO Schema (Rich Snippets) ---
+// --- SEO И МЕТА-ТЕГИ ---
 const baseUrl = 'https://mycom.uz';
 const canonicalUrl = computed(() => `${baseUrl}${localePath('/product/' + product.value!.slug)}`);
-const seoDescription = computed(() => product.value?.seo?.description || product.value?.name);
-const seoImage = computed(() => product.value?.images?.[0] || `${baseUrl}/logo.png`);
-
-const jsonLd = computed(() => {
-  const p = product.value!;
-  const schema: any = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: p.name,
-    image: p.images,
-    description: seoDescription.value,
-    sku: String(p.id),
-    brand: { '@type': 'Brand', name: p.brand?.name || 'MYCOM' },
-    offers: {
-      '@type': 'Offer',
-      url: canonicalUrl.value,
-      priceCurrency: 'UZS',
-      price: p.price,
-      availability: p.stock && p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      seller: { '@type': 'Organization', name: 'MYCOM' }
-    }
-  };
-
-  // Добавляем рейтинг, если он есть
-  if (p.rating && p.reviews_count) {
-    schema.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: p.rating,
-      reviewCount: p.reviews_count
-    };
-  }
-
-  return schema;
-});
 
 useHead({
-  link: [{ rel: 'canonical', href: canonicalUrl }],
-  script: [{ type: 'application/ld+json', children: jsonLd }]
+  link: [{ rel: 'canonical', href: canonicalUrl }]
 });
 
 useSeoMeta({
-  title: () => `${product.value?.seo?.name || product.value?.name} | MYCOM`,
-  description: seoDescription,
+  // ФОРМУЛА TITLE:
+  // 1. Если есть seo.title -> берем его.
+  // 2. Иначе -> [Name] в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz
+  title: () => {
+    const seo = product.value?.seo;
+    if (seo?.title) return `${seo.title} | MYCOM`;
+
+    const productName = seo?.name || product.value?.name;
+    return `${productName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz | MYCOM`;
+  },
+
+  // DESCRIPTION:
+  // 1. Если есть seo.description -> берем его.
+  // 2. Иначе -> Очищенное от HTML описание товара (первые 160 символов).
+  description: () => {
+    const seo = product.value?.seo;
+    if (seo?.description) return seo.description;
+
+    return product.value?.description
+        ?.replace(/<[^>]*>?/gm, '') // Очистка от HTML
+        .slice(0, 160)
+        .trim() + '...' || '';
+  },
+
+  keywords: () => product.value?.seo?.keywords || '',
   ogTitle: () => product.value?.name,
-  ogDescription: seoDescription,
-  ogImage: seoImage,
+  ogImage: () => product.value?.images?.[0] || `${baseUrl}/logo.png`,
   ogType: 'product',
   twitterCard: 'summary_large_image',
 });

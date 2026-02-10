@@ -7,38 +7,30 @@
 <script setup lang="ts">
 const route = useRoute();
 const config = useRuntimeConfig();
-const localePath = useLocalePath(); // Подключаем хелпер путей
-const { locale } = useI18n(); // Подключаем текущую локаль
+const localePath = useLocalePath();
+const { locale } = useI18n();
 
-// Получаем путь без префикса языка для поиска в БД (опционально, зависит от бэкенда)
-// Но чаще всего проще отправить route.path "как есть", а бэкенд сам разберется
-// В данном случае добавим lang в запрос, чтобы бэкенд мог выдать правильную ссылку
-const { data } = await useFetch<any>(`${config.public.apiBase}/api/v1/site/redirect`, {
+// 1. Пытаемся найти редирект
+const { data, error } = await useFetch<any>(`${config.public.apiBase}/api/v1/site/redirect`, {
   query: {
     old_url: route.path,
     lang: locale.value
   }
 });
 
-// Логика обработки ответа
+// 2. Если редирект найден
 if (data.value?.data?.url) {
   let newUrl = data.value.data.url;
 
-  // 1. Нормализация слагов (замена _ на -), если это необходимо
-  // Это полезно, если в базе старые ссылки с подчеркиванием
+  // Замена подчеркивания на дефис (если нужно)
   if (newUrl.includes('_')) {
     newUrl = newUrl.replace(/_/g, '-');
   }
 
-  // 2. Проверяем, внешняя ли это ссылка
   const isExternal = newUrl.startsWith('http');
-
-  // 3. Формируем целевой URL
-  // Если ссылка внутренняя -> оборачиваем в localePath, чтобы сохранить язык
   const targetUrl = isExternal ? newUrl : localePath(newUrl);
 
-  // 4. Защита от бесконечного редиректа
-  // Если API вернул ссылку, на которой мы уже находимся -> отдаем 404
+  // Защита от цикла
   if (route.path === targetUrl || route.fullPath === targetUrl) {
     throw createError({
       statusCode: 404,
@@ -47,14 +39,14 @@ if (data.value?.data?.url) {
     });
   }
 
-  // 5. Выполняем 301 редирект
   await navigateTo(targetUrl, {
     redirectCode: 301,
     external: isExternal
   });
 
 } else {
-  // Если API не нашел редиректа — это честная 404 ошибка
+  // 3. Если редиректа нет — выбрасываем 404
+  // Это вызовет файл error.vue в корне проекта
   throw createError({
     statusCode: 404,
     statusMessage: 'Page Not Found',
