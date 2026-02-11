@@ -260,10 +260,28 @@ export default {
         pickup_desc: 'Buyurtmangizni <a href="/contacts" class="text-brand-blue underline">do‘konlarimizdan</a> o‘zingiz olib ketishingiz mumkin. Mahsulotni band qilish muddati 2 kun.'
     },
     content: {
-        about_text: '<p>MYCOM — bu elektronika va maishiy texnika zamonaviy onlayn do‘koni...</p>',
+        about_text: `
+        <p>«Mycomuz» MChJ «Mycom» brendi ostida 2006-yildan buyon faoliyat yuritib kelmoqda va O‘zbekiston hududidagi kompyuter texnikasining eng yirik yetkazib beruvchilaridan biri hisoblanadi. Biz taniqli ishlab chiqaruvchilar bilan bevosita hamkorlik qilamiz, sinalgan yetkazib berish tizimlaridan foydalanamiz va xaridorlarimizga chegirmalar taqdim etamiz.</p>
+        <p>Biz faol rivojlanishda davom etmoqdamiz va mijozlarimiz uchun maksimal darajada foydali hamda qulay bo‘lishga intilamiz!</p>
+        <p>«Mycom» sizga kompyuterlar, ofis texnikasi va sarflash materiallarini ulgurji hamda chakana narxlarda taklif etadi. Bularning barchasini respublika bo‘ylab joylashgan savdo nuqtalarimizdan xarid qilishingiz mumkin. Mahsulotlar assortimenti bilan ushbu internet-do‘konimizda yoki <a href="https://t.me/mycomuz" target="_blank" rel="nofollow">&#64;mycomuz</a> Telegram-kanalimizda tanishishingiz mumkin.</p>
+        <p><strong>Sizga quyidagilarni taklif qilishdan mamnunmiz:</strong></p>
+        <ul>
+            <li>Mahsulotlarning keng assortimenti</li>
+            <li>Mahsulotlarning istalgan miqdori</li>
+            <li>Hamyonbop narxlar</li>
+            <li>Doimiy mijozlar uchun chegirmalar</li>
+            <li>O‘zbekiston bo‘ylab yetkazib berish xizmati</li>
+        </ul>
+    `,
         terms_text: '<h2>1. Umumiy qoidalar</h2><p>Ushbu oferta rasmiy taklif hisoblanadi...</p>',
         warranty_text: '<p>Do‘konimizdan xarid qilingan barcha mahsulotlarga kafolat beriladi...</p>',
-        trade_in_text: '<p>Trade-In dasturi orqali gadjetlaringizni foydali tarzda yangilang...</p>'
+        trade_in_text: '<p>Trade-In dasturi orqali gadjetlaringizni foydali tarzda yangilang...</p>',
+        delivery_text: `
+        <h2>O‘zbekiston bo‘ylab kompyuter texnikasini yetkazib berish</h2>
+        <p>Mycom internet-do‘koni mahsulotlarni siz uchun qulay shartlarda yetkazib berishni taklif etadi. Biz xarid qilingan har qanday texnikani Toshkent shahri va O‘zbekistonning boshqa shaharlariga yetkazib beramiz. Poytaxtda ushbu xizmatdan foydalanish uchun buyurtmani rasmiylashtirishda kuryer orqali yetkazib berish usulini tanlash lozim. Bunda xarid ish kunlari 24 soat ichida, dam olish kunlari esa 48 soat ichida yetkazib beriladi.</p>
+        <p>O‘zbekistonning boshqa shaharlariga yetkazib berish shartlarini maslahatchimizdan aniqlashtirish lozim. Call-markaz operatori bilan soat 08:00 dan 20:00 gacha saytda ko‘rsatilgan telefon raqamlari orqali bog‘lanish mumkin. Mahsulot odatda ro‘yxatdan o‘tish paytida ko‘rsatilgan manzilga yetkaziladi. Manzilni o‘zgartirish uchun bir soat ichida call-markaz vakili bilan bog‘lanish zarur.</p>
+        <p>Mycom yetkazib berish narxi masofaga va buyurtmaning umumiy qiymatiga bog‘liq. Toshkent shahri ichida buyurtma qiymati <strong>500 000 so‘m va undan ortiq</strong> bo‘lsa, yetkazib berish <strong>bepul</strong> amalga oshiriladi. Kamroq qiymatdagi yoki boshqa shaharlarga yetkazib berish narxi call-markaz maslahatchisi tomonidan hisoblanadi. Shuni alohida ta’kidlaymizki, yirik hajmdagi texnikani ikkinchi qavat va undan yuqoriga olib chiqish uchun qo‘shimcha haq olinishi mumkin. Tafsilotlarni maslahatchilardan aniqlashtirish tavsiya etiladi.</p>
+    `
     },
     seo: {
         index_title: 'MYCOM — Toshkentda kompyuterlar va elektronika do‘koni',

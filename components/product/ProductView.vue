@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 1. Breadcrumbs -->
+    <!-- Breadcrumbs -->
     <div class="container mx-auto px-4 py-4 sm:px-6 md:px-8">
       <nav class="text-xs text-gray-400 md:text-sm flex items-center flex-wrap gap-1 uppercase font-bold tracking-wider">
         <NuxtLink :to="localePath('/')" class="hover:text-brand-blue transition-colors">{{ $t('common.home') }}</NuxtLink>
@@ -13,14 +13,11 @@
       </nav>
     </div>
 
-    <!-- 2. Main Content -->
+    <!-- Main Content -->
     <div class="container mx-auto px-4 sm:px-6 md:px-8">
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10 items-start">
-
-        <!-- Левая колонка: Галерея и Табы (Описание, Характеристики, Отзывы) -->
         <div class="lg:col-span-7 xl:col-span-8 space-y-8">
           <ProductGallery :product="product" />
-
           <ProductTabs
               :product-id="product.id"
               :description="product.description"
@@ -28,34 +25,31 @@
               :reviews-count="product.reviews_count"
           />
         </div>
-
-        <!-- Правая колонка: Основная информация, цены и кнопки (Sticky) -->
         <div class="lg:col-span-5 xl:col-span-4 sticky top-24">
           <ProductInfo :product="product" />
         </div>
-
       </div>
     </div>
 
-    <!-- Мобильная плашка с кнопкой купить (фиксированная снизу) -->
     <ProductMobileStickyBar :product="product" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import type { Product } from '~/types';
 
 const props = defineProps({
   slug: { type: String, required: true }
 });
 
+const route = useRoute();
+const router = useRouter();
 const config = useRuntimeConfig();
 const { locale, t } = useI18n();
 const localePath = useLocalePath();
 
-// --- ПАРСИНГ ID ---
-// Извлекает ID из слага (поддерживает и дефис и подчеркивание для совместимости)
+// 1. Извлекаем ID
 const extractId = (slugStr: string) => {
   if (!slugStr) return '';
   const parts = slugStr.split(/[-_]/);
@@ -64,16 +58,20 @@ const extractId = (slugStr: string) => {
 
 const productId = extractId(props.slug);
 
-// --- ЗАГРУЗКА ДАННЫХ ---
-const { data: product, error } = await useFetch<Product>(`${config.public.apiBase}/api/v1/site/products/detail`, {
+// 2. Загрузка данных
+// УБРАЛИ watch: [locale], чтобы управлять обновлением вручную
+const { data: product, error, refresh } = await useFetch<Product>(`${config.public.apiBase}/api/v1/site/products/detail`, {
   query: {
     product_id: productId,
-    lang: locale.value
+    lang: locale // передаем ref, чтобы query был реактивным
   },
-  key: `product-detail-${productId}-${locale.value}`,
+  key: `product-detail-${productId}`, // Ключ теперь не зависит от локали, мы обновляем тот же объект
   transform: (response: any): Product => {
     const data = response.data;
     if (!data) throw new Error('No data');
+
+    const rawSlug = data.slug || data.seo?.name;
+    const finalSlug = rawSlug ? `${rawSlug}-${data.product_id}` : String(data.product_id);
 
     return {
       id: data.product_id,
@@ -90,58 +88,56 @@ const { data: product, error } = await useFetch<Product>(`${config.public.apiBas
       reviews_count: Number(data.feedbacks || 0),
       specifications: data.attributes || [],
       seo: data.seo,
-      // Формируем внутренний слаг через дефис
-      slug: data.seo?.name ? `${data.seo.name}-${data.product_id}` : String(data.product_id),
+      slug: finalSlug,
       brand: data.brand,
       isNew: data.is_new,
-      product_code: data.product_code, // Артикул
-      packing_code: data.packing_code  // Внутренний код
+      product_code: data.product_code,
+      packing_code: data.packing_code
     };
   }
 });
 
-// Обработка 404
+// 3. ЛОГИКА ОБНОВЛЕНИЯ ПРИ СМЕНЕ ЯЗЫКА
+watch(locale, async () => {
+  // 1. Принудительно обновляем данные товара на новом языке
+  await refresh();
+
+  // 2. Если пришли новые данные и в них есть слаг
+  if (product.value?.slug) {
+    const currentRouteSlug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+
+    // 3. Если слаг в URL старый — обновляем его
+    if (currentRouteSlug !== product.value.slug) {
+      router.replace(localePath(`/product/${product.value.slug}`));
+    }
+  }
+});
+
 if (error.value || !product.value) {
   throw createError({ statusCode: 404, statusMessage: 'Product Not Found', fatal: true });
 }
 
-// --- SEO И МЕТА-ТЕГИ ---
+// ... SEO (код без изменений) ...
 const baseUrl = 'https://mycom.uz';
 const canonicalUrl = computed(() => `${baseUrl}${localePath('/product/' + product.value!.slug)}`);
 
-useHead({
-  link: [{ rel: 'canonical', href: canonicalUrl }]
-});
+useHead({ link: [{ rel: 'canonical', href: canonicalUrl }] });
 
 useSeoMeta({
-  // ФОРМУЛА TITLE:
-  // 1. Если есть seo.title -> берем его.
-  // 2. Иначе -> [Name] в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz
   title: () => {
-    const seo = product.value?.seo;
-    if (seo?.title) return `${seo.title} | MYCOM`;
-
-    const productName = seo?.name || product.value?.name;
-    return `${productName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz | MYCOM`;
+    const s = product.value?.seo;
+    if (s?.title) return `${s.title} | MYCOM`;
+    const productName = s?.name || product.value?.name;
+    return `${productName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz`;
   },
-
-  // DESCRIPTION:
-  // 1. Если есть seo.description -> берем его.
-  // 2. Иначе -> Очищенное от HTML описание товара (первые 160 символов).
   description: () => {
-    const seo = product.value?.seo;
-    if (seo?.description) return seo.description;
-
-    return product.value?.description
-        ?.replace(/<[^>]*>?/gm, '') // Очистка от HTML
-        .slice(0, 160)
-        .trim() + '...' || '';
+    const s = product.value?.seo;
+    if (s?.description) return s.description;
+    return product.value?.description?.replace(/<[^>]*>?/gm, '').slice(0, 160).trim() + '...' || '';
   },
-
   keywords: () => product.value?.seo?.keywords || '',
   ogTitle: () => product.value?.name,
   ogImage: () => product.value?.images?.[0] || `${baseUrl}/logo.png`,
   ogType: 'product',
-  twitterCard: 'summary_large_image',
 });
 </script>

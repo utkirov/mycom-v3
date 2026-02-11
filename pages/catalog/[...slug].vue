@@ -331,10 +331,10 @@ useSeoMeta({
   // 2. ФОЛБЕК: name из API + формула
   // 3. ФОЛБЕК: название категории из меню + формула
   title: () => {
-    if (seoData.value?.title) return `${seoData.value.title} | MYCOM`;
+    if (seoData.value?.title) return `${seoData.value.title}`;
 
     const categoryName = seoData.value?.name || currentCategoryName.value;
-    return `${categoryName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz | MYCOM`;
+    return `${categoryName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz`;
   },
 
   description: () => {

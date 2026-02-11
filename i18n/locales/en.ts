@@ -260,10 +260,28 @@ export default {
         pickup_desc: 'You can pick up your order yourself from our <a href="/contacts" class="text-brand-blue underline">stores</a>. Item reservation is valid for 2 days.'
     },
     content: {
-        about_text: '<p>MYCOM is a modern online store for electronics and home appliances...</p>',
+        about_text: `
+        <p>Mycomuz LLC, operating under the "Mycom" brand, has been active since 2006 and is one of the largest suppliers of computer equipment in Uzbekistan. We cooperate directly with world-renowned manufacturers, utilize proven delivery schemes, and offer discounts to our customers.</p>
+        <p>We continue to develop actively and strive to be as helpful and convenient as possible for our clients!</p>
+        <p>"Mycom" offers computers, office equipment, and consumables both wholesale and retail. You can purchase all of these at our retail outlets across the country. You can browse our product range here on our online store or via our Telegram channel <a href="https://t.me/mycomuz" target="_blank" rel="nofollow">&#64;mycomuz</a>.</p>
+        <p><strong>We are pleased to offer you:</strong></p>
+        <ul>
+            <li>A wide range of products</li>
+            <li>Any quantity of items</li>
+            <li>Competitive prices</li>
+            <li>Discounts for regular customers</li>
+            <li>Nationwide delivery across Uzbekistan</li>
+        </ul>
+    `,
         terms_text: '<h2>1. General Provisions</h2><p>This offer is an official proposal...</p>',
         warranty_text: '<p>All products purchased in our store are covered by warranty...</p>',
-        trade_in_text: '<p>Upgrade your gadgets profitably with the Trade-In program...</p>'
+        trade_in_text: '<p>Upgrade your gadgets profitably with the Trade-In program...</p>',
+        delivery_text: `
+        <h2>Computer Equipment Delivery in Uzbekistan</h2>
+        <p>Mycom online store offers product delivery on favorable terms. We deliver any equipment purchased from us across Tashkent and to other cities in Uzbekistan. To use this service in the capital, please select the "Courier Delivery" method during checkout. In this case, your purchase will be delivered within 24 hours on working days or 48 hours on weekends.</p>
+        <p>Delivery terms for other cities in Uzbekistan should be clarified with our consultant. You can contact our call center operator from 08:00 AM to 08:00 PM using the phone numbers listed on the website. By default, goods are delivered to the address specified during registration. To change it, you must contact a call center representative within one hour of placing the order.</p>
+        <p>Mycom's delivery price depends on the distance and the total order value. Within Tashkent, delivery is <strong>free</strong> for orders totaling <strong>500,000 UZS or more</strong>. Calculation of delivery prices for smaller amounts or to other cities in Uzbekistan is handled by the call center consultant. Please note that carrying large-sized equipment to the second floor and above may require an additional fee. Details should also be clarified with our consultants.</p>
+    `
     },
     seo: {
         index_title: 'MYCOM — Electronics and Gadgets Store in Tashkent',

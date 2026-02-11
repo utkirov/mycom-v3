@@ -5,13 +5,9 @@
         {{ t('common.about') }}
       </h1>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
+      <div class="grid gap-12 items-center mb-16">
         <div class="prose prose-lg text-gray-600">
-          <!-- ИСПРАВЛЕНИЕ: v-sanitize -->
-          <div v-sanitize="t('content.about_text')"></div>
-        </div>
-        <div class="rounded-3xl overflow-hidden shadow-2xl">
-          <img src="/images/about-store.jpg" alt="MYCOM Store" class="w-full h-full object-cover">
+          <div v-sanitize="$t('content.about_text')"></div>
         </div>
       </div>
 

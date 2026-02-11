@@ -33,7 +33,10 @@
 
         <h3 class="text-xl font-semibold text-brand-dark-blue mt-6">{{ $t('checkout.pickup') }}</h3>
         <!-- ИСПРАВЛЕНИЕ: v-sanitize -->
-        <p v-sanitize="$t('delivery.pickup_desc')"></p>
+        <!-- Основной текст из локализации -->
+        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-12">
+          <div v-sanitize="$t('content.delivery_text')"></div>
+        </div>
       </div>
     </div>
   </div>
