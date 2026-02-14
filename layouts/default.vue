@@ -2,7 +2,7 @@
   <div class="flex flex-col min-h-screen">
     <LayoutAppHeader />
 
-    <main class="pt-20 md:pt-[120px] flex-grow pb-20 md:pb-0">
+    <main class="pt-20 md:pt-[120px] flex-grow pb-20 md:pb-0 overflow-x-hidden">
       <slot />
     </main>
 

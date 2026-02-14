@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-white py-6 md:py-10">
+  <div class="bg-white py-4 md:py-10">
     <div class="w-full px-4 sm:px-6 md:px-8">
 
-      <!-- 1. Хлебные крошки -->
-      <nav class="flex items-center gap-2 text-[10px] md:text-xs text-gray-400 mb-6 uppercase tracking-widest font-bold overflow-x-auto no-scrollbar whitespace-nowrap">
+      <!-- 1. Хлебные крошки (Обновлено) -->
+      <nav class="flex items-center gap-2 text-[10px] md:text-xs text-gray-400 mb-4 md:mb-6 uppercase tracking-widest font-bold overflow-x-auto no-scrollbar whitespace-nowrap mask-gradient">
         <template v-for="(crumb, index) in breadcrumbs" :key="index">
           <NuxtLink
               v-if="index < breadcrumbs.length - 1"
@@ -17,26 +17,37 @@
           </span>
           <Icon v-if="index < breadcrumbs.length - 1" name="ph:caret-right-bold" size="10" class="text-gray-300 shrink-0" />
         </template>
+        <!-- Спейсер для удобного скролла на таче -->
+        <div class="w-4 shrink-0 md:hidden"></div>
       </nav>
 
       <!-- 2. Заголовок категории (H1) -->
       <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 class="text-3xl font-extrabold text-brand-dark-blue">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-brand-dark-blue">
           {{ seoData?.name || currentCategoryName }}
         </h1>
 
-        <p v-if="!pending" class="text-sm font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-lg">
+        <p v-if="!pending" class="text-sm font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-lg w-fit">
           {{ $t('common.found') }}: {{ products.length }}
         </p>
       </div>
 
       <div class="flex flex-col lg:flex-row gap-8 items-start">
 
+        <!-- SIDEBAR -->
+        <aside class="hidden lg:block w-72 shrink-0 sticky top-24">
+          <CatalogFilterSidebar
+              :filters-data="apiResponse?.filters || []"
+              :pending="pending"
+              :min-price="apiResponse?.min_price"
+              :max-price="apiResponse?.max_price"
+          />
+        </aside>
 
         <!-- КОНТЕНТ -->
         <div class="flex-1 w-full min-w-0">
 
-          <div class="mb-8">
+          <div class="mb-6 md:mb-8">
             <CatalogSortBar
                 v-model="currentSort"
                 @toggle-filters="isFilterOpen = true"
@@ -61,7 +72,7 @@
 
           <!-- C. СПИСОК ТОВАРОВ -->
           <div v-else-if="products.length > 0">
-            <div class="grid grid-cols-2 gap-4 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               <div v-for="product in products" :key="product.id || product.product_id">
                 <ProductCard :product="product" />
               </div>
@@ -108,7 +119,7 @@
             <NuxtLink :to="localePath('/')" class="mt-8 inline-block px-8 py-3 bg-brand-blue text-white font-bold rounded-2xl">{{ $t('common.home') }}</NuxtLink>
           </div>
 
-          <!-- 3. SEO ТЕКСТ (С КНОПКОЙ "ПОДРОБНЕЕ") -->
+          <!-- 3. SEO ТЕКСТ -->
           <div v-if="seoData?.text" class="mt-16 bg-gray-50 p-6 md:p-8 rounded-3xl border border-gray-100 relative">
             <div
                 class="prose max-w-none text-sm text-gray-600 leading-relaxed overflow-hidden transition-all duration-500 ease-in-out"
@@ -116,7 +127,6 @@
                 v-sanitize="seoData.text"
             ></div>
 
-            <!-- Градиентное затухание, когда текст скрыт -->
             <div v-if="!isSeoExpanded" class="absolute bottom-16 left-0 right-0 h-20 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none rounded-b-3xl"></div>
 
             <button
@@ -179,7 +189,7 @@ const localePath = useLocalePath();
 const catalogStore = useCatalogStore();
 
 const isFilterOpen = ref(false);
-const isSeoExpanded = ref(false); // Состояние для "Подробнее"
+const isSeoExpanded = ref(false);
 const currentPage = ref(Number(route.query.page) || 1);
 const currentSort = ref(route.query.sort?.toString() || 'popularity');
 
@@ -327,16 +337,11 @@ const canonicalUrl = computed(() => `${baseUrl}${route.path}`);
 useHead({ link: [{ rel: 'canonical', href: canonicalUrl }] });
 
 useSeoMeta({
-  // 1. ПРИОРИТЕТ: Поле title из API
-  // 2. ФОЛБЕК: name из API + формула
-  // 3. ФОЛБЕК: название категории из меню + формула
   title: () => {
     if (seoData.value?.title) return `${seoData.value.title}`;
-
     const categoryName = seoData.value?.name || currentCategoryName.value;
     return `${categoryName} в Ташкенте и Узбекистане купить по оптимальной цене можно в интернет-магазине My.com.uz`;
   },
-
   description: () => {
     if (seoData.value?.description) return seoData.value.description;
     if (seoData.value?.text) return seoData.value.text.replace(/<[^>]*>?/gm, '').slice(0, 160).trim() + '...';
@@ -345,3 +350,7 @@ useSeoMeta({
   keywords: () => seoData.value?.keyword || ''
 });
 </script>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+</style>

@@ -82,18 +82,18 @@
           <Icon name="ph:magnifying-glass" size="24" />
         </button>
 
-        <button @click="handleProfileClick" class="flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 hover:text-brand-blue transition-all">
+        <button @click="handleProfileClick" class="hidden xs:flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 hover:text-brand-blue transition-all">
           <Icon :name="authStore?.isLoggedIn ? 'ph:user-circle-fill' : 'ph:user'" size="26" :class="{'text-brand-blue': authStore?.isLoggedIn}" />
         </button>
 
-        <NuxtLink :to="localePath('/wishlist')" class="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 hover:text-brand-red transition-all">
+        <NuxtLink :to="localePath('/wishlist')" class="hidden relative xs:flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 hover:text-brand-red transition-all">
           <Icon name="ph:heart" size="26" />
           <span v-if="wishlistStore?.wishlistCount > 0" class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-red text-[10px] font-bold text-white ring-2 ring-white">
             {{ wishlistStore.wishlistCount }}
           </span>
         </NuxtLink>
 
-        <NuxtLink id="cart-target-desktop" :to="localePath('/cart')" class="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 text-brand-dark-blue hover:bg-brand-blue hover:text-white transition-all duration-300 group">
+        <NuxtLink id="cart-target-desktop" :to="localePath('/cart')" class="hidden relative xs:flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 text-brand-dark-blue hover:bg-brand-blue hover:text-white transition-all duration-300 group">
           <Icon name="ph:shopping-cart-simple" size="26" />
           <span v-if="cartStore?.cartCount > 0" class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-blue text-[10px] font-bold text-white ring-2 ring-white group-hover:bg-brand-dark-blue">
             {{ cartStore.cartCount }}

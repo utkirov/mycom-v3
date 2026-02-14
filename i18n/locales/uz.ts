@@ -146,7 +146,7 @@ export default {
         view_all_sales: 'Barcha aksiyalarni ko‘rish'
     },
     profile: {
-        title: 'Shaxsiy kabinet',
+        title: 'kabinet',
         overview: 'Umumiy ma’lumot',
         orders: 'Mening buyurtmalarim',
         wishlist: 'Sevimlilar',

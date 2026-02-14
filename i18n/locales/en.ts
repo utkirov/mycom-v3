@@ -58,7 +58,7 @@ export default {
         wishlist_login_hint: 'Log in to sync your wishlist across devices.'
     },
     cart: {
-        title: 'Shopping Cart',
+        title: 'Cart',
         items_count: 'Items ({n})',
         empty_title: 'Your cart is empty',
         empty_text: 'Go to the catalog to find something interesting',

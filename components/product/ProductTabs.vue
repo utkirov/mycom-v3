@@ -1,47 +1,47 @@
 <template>
-  <div id="details" class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
-    <!-- Табы (Навигация) -->
-    <div class="flex gap-8 border-b border-gray-100 mb-6 overflow-x-auto no-scrollbar">
+  <div id="details" class="rounded-2xl bg-white p-4 md:p-6 shadow-sm border border-gray-100">
+    <!-- Табы -->
+    <div class="flex gap-6 md:gap-8 border-b border-gray-100 mb-4 md:mb-6 overflow-x-auto no-scrollbar">
       <button
           v-for="tab in tabs" :key="tab.id"
           @click="activeTab = tab.id"
-          class="pb-3 text-lg font-bold transition-colors relative whitespace-nowrap"
+          class="pb-2 md:pb-3 text-base md:text-lg font-bold transition-colors relative whitespace-nowrap"
           :class="activeTab === tab.id ? 'text-brand-blue' : 'text-gray-400 hover:text-gray-600'"
       >
         {{ tab.label }}
-        <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-1 bg-brand-blue rounded-t-full"></span>
+        <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-0.5 md:h-1 bg-brand-blue rounded-t-full"></span>
       </button>
     </div>
 
-    <!-- Контент табов -->
-    <div class="min-h-[200px]">
+    <!-- Контент -->
+    <div class="min-h-[150px] md:min-h-[200px]">
 
-      <!-- 1. ВКЛАДКА: ОПИСАНИЕ (С ЭФФЕКТОМ АККОРДЕОНА) -->
+      <!-- 1. ВКЛАДКА: ОПИСАНИЕ -->
       <div v-if="activeTab === 'desc'" class="relative">
+        <!-- Исправлено: темный цвет текста (gray-700) и увеличенный line-height (leading-7) -->
         <div
-            class="prose max-w-none text-sm md:text-base text-gray-700 leading-relaxed overflow-hidden transition-all duration-500 ease-in-out"
-            :class="isDescExpanded ? 'max-h-[10000px]' : 'max-h-48'"
+            class="prose max-w-none text-sm md:text-base text-gray-700 leading-7 overflow-hidden transition-all duration-500 ease-in-out"
+            :class="isDescExpanded ? 'max-h-[10000px]' : 'max-h-40 md:max-h-48'"
         >
           <div v-sanitize="description || $t('common.nothing_found')"></div>
         </div>
 
-        <!-- Градиентное затухание (показываем, если текст не развернут и он длинный) -->
+        <!-- Исправлено: Более высокий градиент для плавного исчезновения -->
         <div
-            v-if="!isDescExpanded && description && description.length > 400"
-            class="absolute bottom-10 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"
+            v-if="!isDescExpanded && description && description.length > 300"
+            class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/95 to-transparent pointer-events-none"
         ></div>
 
         <!-- Кнопка Подробнее -->
         <button
-            v-if="description && description.length > 400"
+            v-if="description && description.length > 300"
             @click="isDescExpanded = !isDescExpanded"
-            class="mt-4 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-brand-blue hover:text-brand-dark-blue transition-colors group"
+            class="relative mt-4 flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-xl bg-gray-50 py-2.5 px-4 text-xs font-black uppercase tracking-widest text-brand-blue hover:bg-gray-100 transition-colors"
         >
           <span>{{ isDescExpanded ? 'Свернуть описание' : 'Читать подробнее' }}</span>
           <Icon
               :name="isDescExpanded ? 'ph:caret-up-bold' : 'ph:caret-down-bold'"
               class="transition-transform duration-300"
-              :class="isDescExpanded ? '' : 'group-hover:translate-y-0.5'"
           />
         </button>
       </div>
@@ -91,8 +91,8 @@
           <p class="text-gray-500 font-bold">{{ $t('product.reviews_empty') }}</p>
         </div>
 
-        <!-- Форма добавления отзыва -->
-        <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 mt-8">
+        <!-- Форма отзыва -->
+        <div class="bg-gray-50/50 p-4 md:p-6 rounded-3xl border border-gray-100 mt-8">
           <h3 class="text-lg font-black text-brand-dark-blue mb-4 uppercase tracking-tight">{{ $t('product.reviews_leave') }}</h3>
           <form @submit.prevent="submitReview">
             <div class="mb-6">
@@ -159,7 +159,7 @@ const { showToast } = useToast();
 const { t, locale } = useI18n();
 
 const activeTab = ref('desc');
-const isDescExpanded = ref(false); // Для аккордеона описания
+const isDescExpanded = ref(false);
 
 const tabs = computed(() => [
   { id: 'desc', label: t('product.description') },
@@ -167,7 +167,6 @@ const tabs = computed(() => [
   { id: 'reviews', label: t('product.reviews', { n: props.reviewsCount || 0 }) },
 ]);
 
-// Логика отзывов
 const { data: reviewsData, pending: reviewsPending, refresh: refreshReviews } = await useFetch(`${config.public.apiBase}/api/v1/site/products/feedbacks`, {
   query: { product_id: props.productId, lang: locale.value },
   immediate: false,
@@ -192,7 +191,6 @@ const formatDate = (dateStr) => {
   });
 };
 
-// Форма отзыва
 const newReview = ref({ rate: 10, text: '' });
 const isSubmitting = ref(false);
 
@@ -238,14 +236,11 @@ const submitReview = async () => {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-
-/* Стили для плавности раскрытия аккордеона */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 500ms;
 }
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

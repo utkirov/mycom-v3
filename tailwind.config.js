@@ -24,7 +24,11 @@ module.exports = {
                 'unbounded': ['Unbounded', 'sans-serif'],
                 'mulish': ['Mulish', 'sans-serif'], // Добавил, раз подключили в nuxt.config
             },
+            screens: {
+                'xs': '375px', // Добавляем экстра-малый экран
+            },
         },
+
     },
     plugins: [],
 }

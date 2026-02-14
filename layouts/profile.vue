@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-profile-bg flex flex-col">
     <LayoutAppHeader />
 
-    <main class="pt-20 pb-24 md:pt-[130px] md:pb-20 flex-grow">
+    <main class="pt-20 pb-24 md:pt-[130px] md:pb-20 flex-grow overflow-x-hidden">
       <div class="container mx-auto px-4 sm:px-6 md:px-8">
 
         <h1 class="mb-6 text-2xl font-extrabold text-brand-dark-blue sm:text-3xl lg:text-4xl md:mb-8">

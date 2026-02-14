@@ -146,7 +146,7 @@ export default {
         view_all_sales: 'Смотреть все акции'
     },
     profile: {
-        title: 'Личный кабинет',
+        title: 'Профиль',
         overview: 'Обзор',
         orders: 'Мои заказы',
         wishlist: 'Избранное',
